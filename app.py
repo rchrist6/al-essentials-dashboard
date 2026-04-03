@@ -697,10 +697,10 @@ def render_self_assessment(crosswalk):
         with exp_col2:
             st.markdown("**Submit to Instructor**")
             st.markdown(
-                "Generate a summary row for your instructor to collect "
-                "across all students."
+                "Enter your name and click Submit to send your assessment "
+                "directly to your instructor's records."
             )
-            student_name = st.text_input("Your Name (for submission)")
+            student_name = st.text_input("Your Name (required for submission)")
             if student_name and 'crosswalk' in st.session_state:
                 summary_df = export_for_instructor(
                     st.session_state.self_assessment,
@@ -709,6 +709,38 @@ def render_self_assessment(crosswalk):
                     st.session_state.feat_imp,
                     student_name=student_name
                 )
+
+                # Google Sheets submission
+                SHEETS_URL = st.secrets.get("GOOGLE_SHEETS_URL", "") if hasattr(st, 'secrets') else ""
+                try:
+                    SHEETS_URL = st.secrets.get("GOOGLE_SHEETS_URL", "")
+                except Exception:
+                    SHEETS_URL = ""
+
+                if SHEETS_URL:
+                    if st.button("Submit Assessment", type="primary"):
+                        import requests
+                        try:
+                            payload = summary_df.iloc[0].to_dict()
+                            # Convert any non-serializable values
+                            for k, v in payload.items():
+                                if pd.isna(v):
+                                    payload[k] = ""
+                                elif hasattr(v, 'item'):
+                                    payload[k] = v.item()
+                            resp = requests.post(SHEETS_URL, json=payload, timeout=10)
+                            if resp.status_code == 200:
+                                st.success(
+                                    f"Assessment submitted successfully for {student_name}. "
+                                    f"Your instructor will see your results."
+                                )
+                            else:
+                                st.error("Submission failed. Please download the CSV instead.")
+                        except Exception as e:
+                            st.error(f"Could not connect to the collection sheet. "
+                                     f"Please download the CSV instead.")
+
+                # Always offer CSV download as fallback
                 csv_summary = summary_df.to_csv(index=False)
                 st.download_button(
                     "Download Instructor Summary (CSV)",
