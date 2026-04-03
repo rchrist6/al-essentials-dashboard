@@ -1,0 +1,130 @@
+soc_code,title,cluster,job_zone,is_target
+11-9111.00,Medical and Health Services Managers,2,4,1
+11-9121.01,Clinical Research Coordinators,3,4,0
+15-1211.01,Health Informatics Specialists,2,5,1
+15-2051.02,Clinical Data Managers,3,4,0
+19-1041.00,Epidemiologists,2,5,0
+19-1042.00,"Medical Scientists, Except Epidemiologists",2,5,0
+19-3033.00,Clinical and Counseling Psychologists,3,5,0
+19-3039.03,Clinical Neuropsychologists,3,5,0
+19-5011.00,Occupational Health and Safety Specialists,2,4,0
+19-5012.00,Occupational Health and Safety Technicians,2,3,0
+21-1011.00,Substance Abuse and Behavioral Disorder Counselors,3,5,0
+21-1012.00,"Educational, Guidance, and Career Counselors and Advisors",3,5,0
+21-1013.00,Marriage and Family Therapists,3,5,0
+21-1014.00,Mental Health Counselors,3,5,0
+21-1015.00,Rehabilitation Counselors,3,4,0
+21-1021.00,"Child, Family, and School Social Workers",3,4,0
+21-1022.00,Healthcare Social Workers,3,5,0
+21-1023.00,Mental Health and Substance Abuse Social Workers,3,5,0
+21-1091.00,Health Education Specialists,3,4,0
+21-1092.00,Probation Officers and Correctional Treatment Specialists,3,4,0
+21-1093.00,Social and Human Service Assistants,3,4,0
+21-1094.00,Community Health Workers,3,4,0
+25-1071.00,"Health Specialties Teachers, Postsecondary",3,5,0
+25-1072.00,"Nursing Instructors and Teachers, Postsecondary",2,5,1
+29-1011.00,Chiropractors,2,5,0
+29-1021.00,"Dentists, General",2,5,0
+29-1022.00,Oral and Maxillofacial Surgeons,2,5,0
+29-1023.00,Orthodontists,2,5,0
+29-1024.00,Prosthodontists,2,5,0
+29-1031.00,Dietitians and Nutritionists,3,5,0
+29-1041.00,Optometrists,2,5,0
+29-1051.00,Pharmacists,2,5,0
+29-1071.00,Physician Assistants,2,5,0
+29-1071.01,Anesthesiologist Assistants,1,5,0
+29-1081.00,Podiatrists,2,5,0
+29-1122.00,Occupational Therapists,3,5,0
+29-1122.01,"Low Vision Therapists, Orientation and Mobility Specialists, and Vision Rehabilitation Therapists",3,5,0
+29-1123.00,Physical Therapists,2,5,0
+29-1124.00,Radiation Therapists,1,3,0
+29-1125.00,Recreational Therapists,3,4,0
+29-1126.00,Respiratory Therapists,1,3,0
+29-1127.00,Speech-Language Pathologists,3,5,0
+29-1128.00,Exercise Physiologists,3,4,0
+29-1129.01,Art Therapists,3,5,0
+29-1129.02,Music Therapists,3,4,0
+29-1131.00,Veterinarians,2,5,0
+29-1141.00,Registered Nurses,2,4,1
+29-1141.01,Acute Care Nurses,2,4,0
+29-1141.02,Advanced Practice Psychiatric Nurses,3,5,0
+29-1141.03,Critical Care Nurses,2,4,0
+29-1141.04,Clinical Nurse Specialists,2,5,1
+29-1151.00,Nurse Anesthetists,2,5,1
+29-1161.00,Nurse Midwives,2,5,1
+29-1171.00,Nurse Practitioners,2,5,1
+29-1181.00,Audiologists,2,5,0
+29-1211.00,Anesthesiologists,2,5,0
+29-1213.00,Dermatologists,2,5,0
+29-1214.00,Emergency Medicine Physicians,2,5,0
+29-1215.00,Family Medicine Physicians,2,5,0
+29-1216.00,General Internal Medicine Physicians,2,5,0
+29-1217.00,Neurologists,2,5,0
+29-1218.00,Obstetricians and Gynecologists,2,5,0
+29-1221.00,"Pediatricians, General",2,5,0
+29-1222.00,"Physicians, Pathologists",2,5,0
+29-1223.00,Psychiatrists,3,5,0
+29-1224.00,Radiologists,2,5,0
+29-1229.01,Allergists and Immunologists,2,5,0
+29-1229.02,Hospitalists,2,5,0
+29-1229.03,Urologists,2,5,0
+29-1229.04,Physical Medicine and Rehabilitation Physicians,2,5,0
+29-1229.05,Preventive Medicine Physicians,2,5,0
+29-1229.06,Sports Medicine Physicians,2,5,0
+29-1241.00,"Ophthalmologists, Except Pediatric",2,5,0
+29-1291.00,Acupuncturists,0,5,0
+29-1292.00,Dental Hygienists,1,3,0
+29-1299.01,Naturopathic Physicians,2,5,0
+29-1299.02,Orthoptists,3,5,0
+29-2011.00,Medical and Clinical Laboratory Technologists,1,4,0
+29-2011.01,Cytogenetic Technologists,1,4,0
+29-2011.02,Cytotechnologists,1,5,0
+29-2011.04,Histotechnologists,1,4,0
+29-2012.00,Medical and Clinical Laboratory Technicians,1,3,0
+29-2012.01,Histology Technicians,0,3,0
+29-2031.00,Cardiovascular Technologists and Technicians,1,3,0
+29-2032.00,Diagnostic Medical Sonographers,1,3,0
+29-2033.00,Nuclear Medicine Technologists,1,3,0
+29-2034.00,Radiologic Technologists and Technicians,1,3,0
+29-2035.00,Magnetic Resonance Imaging Technologists,1,3,0
+29-2036.00,Medical Dosimetrists,2,4,0
+29-2051.00,Dietetic Technicians,1,3,0
+29-2052.00,Pharmacy Technicians,0,3,0
+29-2053.00,Psychiatric Technicians,0,3,0
+29-2055.00,Surgical Technologists,1,3,0
+29-2056.00,Veterinary Technologists and Technicians,1,3,0
+29-2057.00,Ophthalmic Medical Technicians,0,3,0
+29-2061.00,Licensed Practical and Licensed Vocational Nurses,1,3,0
+29-2081.00,"Opticians, Dispensing",1,3,0
+29-2091.00,Orthotists and Prosthetists,2,5,0
+29-2092.00,Hearing Aid Specialists,1,3,0
+29-2099.01,Neurodiagnostic Technologists,1,3,0
+29-2099.05,Ophthalmic Medical Technologists,0,3,0
+29-2099.08,Patient Representatives,3,3,0
+29-9091.00,Athletic Trainers,3,5,0
+29-9092.00,Genetic Counselors,3,5,0
+29-9093.00,Surgical Assistants,1,3,0
+29-9099.01,Midwives,2,5,0
+31-1121.00,Home Health Aides,0,2,0
+31-1122.00,Personal Care Aides,0,2,0
+31-1131.00,Nursing Assistants,0,3,0
+31-1132.00,Orderlies,0,2,0
+31-1133.00,Psychiatric Aides,0,2,0
+31-2011.00,Occupational Therapy Assistants,0,3,0
+31-2012.00,Occupational Therapy Aides,0,3,0
+31-2021.00,Physical Therapist Assistants,1,3,0
+31-2022.00,Physical Therapist Aides,0,2,0
+31-9011.00,Massage Therapists,0,3,0
+31-9091.00,Dental Assistants,1,3,0
+31-9092.00,Medical Assistants,1,3,0
+31-9093.00,Medical Equipment Preparers,1,2,0
+31-9094.00,Medical Transcriptionists,0,3,0
+31-9095.00,Pharmacy Aides,0,2,0
+31-9096.00,Veterinary Assistants and Laboratory Animal Caretakers,1,2,0
+31-9097.00,Phlebotomists,1,3,0
+31-9099.01,Speech-Language Pathology Assistants,0,3,0
+31-9099.02,Endoscopy Technicians,1,2,0
+43-6013.00,Medical Secretaries and Administrative Assistants,0,2,0
+51-9081.00,Dental Laboratory Technicians,1,2,0
+51-9082.00,Medical Appliance Technicians,1,3,0
+53-3011.00,"Ambulance Drivers and Attendants, Except Emergency Medical Technicians",1,2,0

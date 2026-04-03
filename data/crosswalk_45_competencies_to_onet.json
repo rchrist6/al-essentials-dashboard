@@ -1,0 +1,1159 @@
+{
+  "1.1": {
+    "competency": "Demonstrate understanding of nursing's distinctive perspective",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Biology",
+        "Medicine and Dentistry",
+        "Psychology",
+        "Sociology and Anthropology"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Reading Comprehension",
+        "Science"
+      ],
+      "Work Activities": [
+        "Updating and Using Relevant Knowledge",
+        "Analyzing Data or Information"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Direct alignment - nursing knowledge base maps well to O*NET knowledge domains"
+  },
+  "1.2": {
+    "competency": "Apply theory and research-based knowledge from nursing and other sciences",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Biology",
+        "Medicine and Dentistry",
+        "Chemistry",
+        "Mathematics",
+        "English Language",
+        "Education and Training"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Reading Comprehension",
+        "Active Learning",
+        "Complex Problem Solving",
+        "Science"
+      ],
+      "Work Activities": [
+        "Updating and Using Relevant Knowledge",
+        "Analyzing Data or Information",
+        "Processing Information",
+        "Getting Information"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Achievement Orientation",
+        "Attention to Detail"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Broad knowledge application maps to multiple O*NET knowledge and skill dimensions"
+  },
+  "1.3": {
+    "competency": "Demonstrate clinical judgement founded on a broad knowledge base",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Biology",
+        "Psychology",
+        "Therapy and Counseling"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Judgment and Decision Making",
+        "Complex Problem Solving",
+        "Active Learning"
+      ],
+      "Work Activities": [
+        "Making Decisions and Solving Problems",
+        "Evaluating Information to Determine Compliance with Standards",
+        "Interpreting the Meaning of Information for Others"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Cautiousness",
+        "Integrity"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Clinical judgment well-captured by decision-making and critical thinking skills"
+  },
+  "2.1": {
+    "competency": "Engage with the individual in establishing a caring relationship",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Psychology",
+        "Customer and Personal Service",
+        "Therapy and Counseling"
+      ],
+      "Skills": [
+        "Active Listening",
+        "Social Perceptiveness",
+        "Service Orientation"
+      ],
+      "Work Activities": [
+        "Assisting and Caring for Others",
+        "Establishing and Maintaining Interpersonal Relationships"
+      ],
+      "Work Styles": [
+        "Empathy",
+        "Cooperation",
+        "Social Orientation"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Caring relationship maps directly to interpersonal O*NET dimensions"
+  },
+  "2.2": {
+    "competency": "Communicate effectively with individuals",
+    "onet_dimensions": {
+      "Knowledge": [
+        "English Language",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Speaking",
+        "Active Listening",
+        "Writing",
+        "Reading Comprehension"
+      ],
+      "Work Activities": [
+        "Communicating with Supervisors, Peers, or Subordinates",
+        "Communicating with People Outside the Organization",
+        "Interpreting the Meaning of Information for Others"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Empathy",
+        "Self-Control"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Communication well-represented across multiple O*NET categories"
+  },
+  "2.3": {
+    "competency": "Integrate assessment skills in practice",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Biology",
+        "Psychology"
+      ],
+      "Skills": [
+        "Monitoring",
+        "Critical Thinking",
+        "Active Learning"
+      ],
+      "Work Activities": [
+        "Identifying Objects, Actions, and Events",
+        "Getting Information",
+        "Inspecting Equipment, Structures, or Materials"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Cautiousness"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Clinical assessment partially captured; O*NET lacks nursing-specific assessment measures"
+  },
+  "2.4": {
+    "competency": "Diagnose actual or potential health problems and needs",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Biology",
+        "Psychology",
+        "Therapy and Counseling"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Judgment and Decision Making",
+        "Complex Problem Solving"
+      ],
+      "Work Activities": [
+        "Making Decisions and Solving Problems",
+        "Analyzing Data or Information",
+        "Identifying Objects, Actions, and Events"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Cautiousness",
+        "Integrity"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Diagnostic reasoning captured through problem-solving; nursing diagnosis specificity limited"
+  },
+  "2.5": {
+    "competency": "Develop a plan of care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Therapy and Counseling",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Complex Problem Solving",
+        "Judgment and Decision Making",
+        "Critical Thinking",
+        "Systems Analysis"
+      ],
+      "Work Activities": [
+        "Making Decisions and Solving Problems",
+        "Organizing, Planning, and Prioritizing Work",
+        "Thinking Creatively"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Initiative",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Care planning maps to planning/organizing; lacks nursing care plan specificity"
+  },
+  "2.6": {
+    "competency": "Demonstrate accountability for care delivery",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Customer and Personal Service",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Monitoring",
+        "Quality Control Analysis",
+        "Time Management"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Documenting/Recording Information",
+        "Monitoring Processes, Materials, or Surroundings"
+      ],
+      "Work Styles": [
+        "Dependability",
+        "Integrity",
+        "Attention to Detail"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Accountability aligns well with monitoring, compliance, and dependability"
+  },
+  "2.7": {
+    "competency": "Evaluate outcomes of care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Mathematics"
+      ],
+      "Skills": [
+        "Monitoring",
+        "Critical Thinking",
+        "Quality Control Analysis"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Analyzing Data or Information",
+        "Judging the Qualities of Objects, Services, or People"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Outcomes evaluation partially captured; lacks NOC-specific measures"
+  },
+  "2.8": {
+    "competency": "Promote self-care management",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Education and Training",
+        "Psychology",
+        "Therapy and Counseling"
+      ],
+      "Skills": [
+        "Instructing",
+        "Persuasion",
+        "Social Perceptiveness",
+        "Service Orientation"
+      ],
+      "Work Activities": [
+        "Training and Teaching Others",
+        "Coaching and Developing Others",
+        "Assisting and Caring for Others"
+      ],
+      "Work Styles": [
+        "Empathy",
+        "Cooperation",
+        "Social Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Patient education for self-care maps to teaching/coaching; lacks health literacy measures"
+  },
+  "2.9": {
+    "competency": "Provide care coordination",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Administration and Management",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Coordination",
+        "Time Management",
+        "Management of Personnel Resources"
+      ],
+      "Work Activities": [
+        "Coordinating the Work and Activities of Others",
+        "Organizing, Planning, and Prioritizing Work",
+        "Scheduling Work and Activities"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Dependability",
+        "Leadership Orientation"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Care coordination maps directly to organizational coordination dimensions"
+  },
+  "3.1": {
+    "competency": "Manage population health",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Sociology and Anthropology",
+        "Biology",
+        "Medicine and Dentistry",
+        "Mathematics"
+      ],
+      "Skills": [
+        "Systems Analysis",
+        "Systems Evaluation",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Analyzing Data or Information",
+        "Processing Information",
+        "Getting Information"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "O*NET lacks epidemiology, SDOH frameworks, population assessment - Tier 2 comparators needed"
+  },
+  "3.2": {
+    "competency": "Engage in effective partnerships",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Customer and Personal Service",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Negotiation",
+        "Persuasion",
+        "Coordination",
+        "Social Perceptiveness"
+      ],
+      "Work Activities": [
+        "Communicating with People Outside the Organization",
+        "Establishing and Maintaining Interpersonal Relationships",
+        "Developing and Building Teams"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Leadership Orientation",
+        "Social Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Community partnership partially captured through interpersonal dimensions"
+  },
+  "3.3": {
+    "competency": "Consider socioeconomic impact of health care delivery",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Economics and Accounting",
+        "Sociology and Anthropology",
+        "Law and Government"
+      ],
+      "Skills": [
+        "Systems Analysis",
+        "Systems Evaluation",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Analyzing Data or Information",
+        "Estimating the Quantifiable Characteristics of Products, Events, or Information"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Health economics and social determinants poorly represented in nursing O*NET profiles"
+  },
+  "3.4": {
+    "competency": "Advance equitable population health policy",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Law and Government",
+        "Sociology and Anthropology",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Persuasion",
+        "Negotiation",
+        "Writing",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Communicating with People Outside the Organization",
+        "Developing Objectives and Strategies"
+      ],
+      "Work Styles": [
+        "Initiative",
+        "Leadership Orientation"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Health policy advocacy not well-captured; Tier 2 Health Services Manager fills gap"
+  },
+  "3.5": {
+    "competency": "Demonstrate advocacy strategies",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Law and Government",
+        "English Language"
+      ],
+      "Skills": [
+        "Persuasion",
+        "Speaking",
+        "Writing",
+        "Negotiation"
+      ],
+      "Work Activities": [
+        "Communicating with People Outside the Organization",
+        "Interpreting the Meaning of Information for Others"
+      ],
+      "Work Styles": [
+        "Initiative",
+        "Leadership Orientation",
+        "Integrity"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Nursing advocacy poorly proxied by general persuasion/negotiation"
+  },
+  "3.6": {
+    "competency": "Advance preparedness for disasters and public health emergencies",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Public Safety and Security",
+        "Medicine and Dentistry",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Coordination",
+        "Judgment and Decision Making",
+        "Complex Problem Solving"
+      ],
+      "Work Activities": [
+        "Making Decisions and Solving Problems",
+        "Coordinating the Work and Activities of Others"
+      ],
+      "Work Styles": [
+        "Stress Tolerance",
+        "Adaptability",
+        "Leadership Orientation"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Emergency preparedness only tangentially captured; no O*NET measures for disaster nursing"
+  },
+  "4.1": {
+    "competency": "Advance the scholarship of nursing",
+    "onet_dimensions": {
+      "Knowledge": [
+        "English Language",
+        "Education and Training",
+        "Mathematics"
+      ],
+      "Skills": [
+        "Writing",
+        "Reading Comprehension",
+        "Critical Thinking",
+        "Active Learning"
+      ],
+      "Work Activities": [
+        "Updating and Using Relevant Knowledge",
+        "Processing Information",
+        "Analyzing Data or Information"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Achievement Orientation",
+        "Perseverance"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Research design, IRB processes, evidence synthesis not captured by O*NET"
+  },
+  "4.2": {
+    "competency": "Integrate best evidence into nursing practice",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Mathematics",
+        "English Language"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Reading Comprehension",
+        "Active Learning",
+        "Complex Problem Solving"
+      ],
+      "Work Activities": [
+        "Updating and Using Relevant Knowledge",
+        "Analyzing Data or Information",
+        "Making Decisions and Solving Problems"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Attention to Detail"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "EBP partially captured through learning/analysis; lacks literature review specificity"
+  },
+  "4.3": {
+    "competency": "Promote ethical conduct of scholarly activities",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Law and Government",
+        "Philosophy and Theology"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Writing"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards"
+      ],
+      "Work Styles": [
+        "Integrity",
+        "Dependability"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Research ethics, IRB compliance, academic integrity not O*NET dimensions"
+  },
+  "5.1": {
+    "competency": "Apply quality improvement principles in care delivery",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Administration and Management",
+        "Mathematics"
+      ],
+      "Skills": [
+        "Quality Control Analysis",
+        "Systems Analysis",
+        "Systems Evaluation",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Analyzing Data or Information",
+        "Monitoring Processes, Materials, or Surroundings"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "QI principles map well to quality control and systems analysis"
+  },
+  "5.2": {
+    "competency": "Contribute to a culture of patient safety",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Public Safety and Security",
+        "Medicine and Dentistry"
+      ],
+      "Skills": [
+        "Monitoring",
+        "Quality Control Analysis",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Monitoring Processes, Materials, or Surroundings",
+        "Inspecting Equipment, Structures, or Materials"
+      ],
+      "Work Styles": [
+        "Cautiousness",
+        "Attention to Detail",
+        "Integrity",
+        "Dependability"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Safety culture maps to monitoring, compliance, and cautiousness"
+  },
+  "5.3": {
+    "competency": "Contribute to a culture of provider and work environment safety",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Public Safety and Security",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Monitoring",
+        "Quality Control Analysis"
+      ],
+      "Work Activities": [
+        "Monitoring Processes, Materials, or Surroundings",
+        "Evaluating Information to Determine Compliance with Standards"
+      ],
+      "Work Styles": [
+        "Cautiousness",
+        "Stress Tolerance",
+        "Self-Control"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Workplace safety captured through general safety dimensions"
+  },
+  "6.1": {
+    "competency": "Communicate to facilitate partnership approach to quality care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "English Language",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Speaking",
+        "Active Listening",
+        "Social Perceptiveness",
+        "Persuasion"
+      ],
+      "Work Activities": [
+        "Communicating with Supervisors, Peers, or Subordinates",
+        "Establishing and Maintaining Interpersonal Relationships"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Social Orientation",
+        "Empathy"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Interprofessional communication maps directly to communication and social skills"
+  },
+  "6.2": {
+    "competency": "Perform effectively in different team roles",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Coordination",
+        "Social Perceptiveness",
+        "Negotiation"
+      ],
+      "Work Activities": [
+        "Coordinating the Work and Activities of Others",
+        "Developing and Building Teams",
+        "Guiding, Directing, and Motivating Subordinates"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Leadership Orientation",
+        "Adaptability"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Team role performance maps well to coordination and team-building"
+  },
+  "6.3": {
+    "competency": "Use knowledge of nursing and other professions to address healthcare needs",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Medicine and Dentistry",
+        "Therapy and Counseling",
+        "Psychology"
+      ],
+      "Skills": [
+        "Systems Analysis",
+        "Critical Thinking",
+        "Coordination"
+      ],
+      "Work Activities": [
+        "Coordinating the Work and Activities of Others",
+        "Thinking Creatively"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Intellectual Curiosity"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Cross-professional knowledge use partially captured through systems analysis"
+  },
+  "6.4": {
+    "competency": "Work with other professions for mutual learning, respect, shared values",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Education and Training",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Social Perceptiveness",
+        "Negotiation",
+        "Instructing",
+        "Active Listening"
+      ],
+      "Work Activities": [
+        "Developing and Building Teams",
+        "Training and Teaching Others",
+        "Coaching and Developing Others"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Social Orientation",
+        "Humility"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Mutual respect/shared values partially captured through teamwork and teaching"
+  },
+  "7.1": {
+    "competency": "Apply systems knowledge across the continuum of care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Administration and Management",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Systems Analysis",
+        "Systems Evaluation",
+        "Coordination"
+      ],
+      "Work Activities": [
+        "Organizing, Planning, and Prioritizing Work",
+        "Coordinating the Work and Activities of Others"
+      ],
+      "Work Styles": [
+        "Adaptability",
+        "Leadership Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Systems thinking partially captured; Tier 2 Health Services Manager fills healthcare systems gap"
+  },
+  "7.2": {
+    "competency": "Incorporate cost-effectiveness of care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Economics and Accounting",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Management of Financial Resources",
+        "Management of Material Resources",
+        "Systems Analysis"
+      ],
+      "Work Activities": [
+        "Estimating the Quantifiable Characteristics of Products, Events, or Information",
+        "Developing Objectives and Strategies"
+      ],
+      "Work Styles": [
+        "Attention to Detail"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Cost-effectiveness maps to financial management; Tier 2 enhances this mapping"
+  },
+  "7.3": {
+    "competency": "Optimize system effectiveness through innovation and EBP",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Administration and Management",
+        "Mathematics"
+      ],
+      "Skills": [
+        "Systems Analysis",
+        "Systems Evaluation",
+        "Complex Problem Solving",
+        "Quality Control Analysis"
+      ],
+      "Work Activities": [
+        "Thinking Creatively",
+        "Developing Objectives and Strategies",
+        "Analyzing Data or Information"
+      ],
+      "Work Styles": [
+        "Innovation",
+        "Initiative",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Innovation and EBP for systems partially captured"
+  },
+  "8.1": {
+    "competency": "Describe ICT tools used in care of patients, communities, populations",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Computers and Electronics",
+        "Telecommunications"
+      ],
+      "Skills": [
+        "Technology Design",
+        "Programming",
+        "Operations Analysis"
+      ],
+      "Work Activities": [
+        "Working with Computers",
+        "Interacting With Computers"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Adaptability"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "ICT knowledge maps well; Tier 2 Health Informatics Specialist strengthens this"
+  },
+  "8.2": {
+    "competency": "Use ICT to gather data, create information, generate knowledge",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Computers and Electronics",
+        "Mathematics"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Active Learning",
+        "Complex Problem Solving"
+      ],
+      "Work Activities": [
+        "Working with Computers",
+        "Analyzing Data or Information",
+        "Processing Information"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Intellectual Curiosity"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Data analysis with technology maps directly; Tier 2 Health Informatics key comparator"
+  },
+  "8.3": {
+    "competency": "Use ICT and informatics to deliver safe nursing care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Computers and Electronics",
+        "Medicine and Dentistry"
+      ],
+      "Skills": [
+        "Monitoring",
+        "Technology Design",
+        "Quality Control Analysis"
+      ],
+      "Work Activities": [
+        "Working with Computers",
+        "Documenting/Recording Information",
+        "Monitoring Processes, Materials, or Surroundings"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Cautiousness"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Technology-enabled safe care maps to technology + safety dimensions"
+  },
+  "8.4": {
+    "competency": "Use ICT for documentation and provider communication",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Computers and Electronics",
+        "English Language"
+      ],
+      "Skills": [
+        "Writing",
+        "Speaking",
+        "Reading Comprehension"
+      ],
+      "Work Activities": [
+        "Documenting/Recording Information",
+        "Working with Computers",
+        "Communicating with Supervisors, Peers, or Subordinates"
+      ],
+      "Work Styles": [
+        "Attention to Detail",
+        "Dependability"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "EHR documentation and provider communication well-captured"
+  },
+  "8.5": {
+    "competency": "Use ICT per ethical, legal, professional, regulatory standards",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Computers and Electronics",
+        "Law and Government"
+      ],
+      "Skills": [
+        "Quality Control Analysis",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Working with Computers"
+      ],
+      "Work Styles": [
+        "Integrity",
+        "Dependability",
+        "Cautiousness"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Regulatory compliance partially captured; HIPAA/health IT-specific regulations not in O*NET"
+  },
+  "9.1": {
+    "competency": "Demonstrate ethical comportment reflective of nursing's mission",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Philosophy and Theology"
+      ],
+      "Skills": [
+        "Critical Thinking",
+        "Social Perceptiveness"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards"
+      ],
+      "Work Styles": [
+        "Integrity",
+        "Dependability",
+        "Empathy"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Nursing ethics distinct concept; O*NET integrity/dependability are rough proxies"
+  },
+  "9.2": {
+    "competency": "Employ participatory approach to nursing care",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Customer and Personal Service",
+        "Psychology"
+      ],
+      "Skills": [
+        "Social Perceptiveness",
+        "Active Listening",
+        "Service Orientation"
+      ],
+      "Work Activities": [
+        "Assisting and Caring for Others",
+        "Establishing and Maintaining Interpersonal Relationships"
+      ],
+      "Work Styles": [
+        "Cooperation",
+        "Empathy",
+        "Social Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Participatory care partially captured through service and interpersonal dimensions"
+  },
+  "9.3": {
+    "competency": "Demonstrate accountability to individual, society, and profession",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Law and Government",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Social Perceptiveness",
+        "Quality Control Analysis"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Establishing and Maintaining Interpersonal Relationships"
+      ],
+      "Work Styles": [
+        "Integrity",
+        "Dependability",
+        "Achievement Orientation"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Professional accountability partially captured through integrity and compliance"
+  },
+  "9.4": {
+    "competency": "Comply with relevant laws, policies, and regulations",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Law and Government",
+        "Administration and Management"
+      ],
+      "Skills": [
+        "Quality Control Analysis",
+        "Critical Thinking"
+      ],
+      "Work Activities": [
+        "Evaluating Information to Determine Compliance with Standards",
+        "Documenting/Recording Information"
+      ],
+      "Work Styles": [
+        "Integrity",
+        "Dependability",
+        "Cautiousness"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Legal/regulatory compliance maps to law knowledge and compliance work activities"
+  },
+  "9.5": {
+    "competency": "Demonstrate the professional identity of nursing",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Psychology",
+        "Sociology and Anthropology"
+      ],
+      "Skills": [
+        "Social Perceptiveness",
+        "Speaking"
+      ],
+      "Work Activities": [
+        "Establishing and Maintaining Interpersonal Relationships"
+      ],
+      "Work Styles": [
+        "Integrity",
+        "Achievement Orientation",
+        "Leadership Orientation"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Professional identity is nursing-specific, not well-represented in O*NET"
+  },
+  "9.6": {
+    "competency": "Integrate DEI as core to professional identity",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Sociology and Anthropology",
+        "Psychology",
+        "Customer and Personal Service"
+      ],
+      "Skills": [
+        "Social Perceptiveness",
+        "Active Listening"
+      ],
+      "Work Activities": [
+        "Establishing and Maintaining Interpersonal Relationships",
+        "Assisting and Caring for Others"
+      ],
+      "Work Styles": [
+        "Empathy",
+        "Cooperation",
+        "Social Orientation",
+        "Humility"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "DEI concepts not explicitly measured in O*NET; social perceptiveness is loose proxy"
+  },
+  "10.1": {
+    "competency": "Demonstrate commitment to personal health and well-being",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Psychology"
+      ],
+      "Skills": [
+        "Social Perceptiveness"
+      ],
+      "Work Activities": [],
+      "Work Styles": [
+        "Stress Tolerance",
+        "Self-Control",
+        "Adaptability"
+      ]
+    },
+    "mapping_strength": "Weak",
+    "notes": "Self-care/wellness not O*NET dimensions; stress tolerance is closest proxy"
+  },
+  "10.2": {
+    "competency": "Demonstrate spirit of inquiry fostering flexibility and professional maturity",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Education and Training"
+      ],
+      "Skills": [
+        "Active Learning",
+        "Critical Thinking",
+        "Reading Comprehension"
+      ],
+      "Work Activities": [
+        "Updating and Using Relevant Knowledge",
+        "Analyzing Data or Information"
+      ],
+      "Work Styles": [
+        "Intellectual Curiosity",
+        "Adaptability",
+        "Achievement Orientation",
+        "Perseverance"
+      ]
+    },
+    "mapping_strength": "Moderate",
+    "notes": "Lifelong learning maps to active learning and intellectual curiosity"
+  },
+  "10.3": {
+    "competency": "Develop capacity for leadership",
+    "onet_dimensions": {
+      "Knowledge": [
+        "Administration and Management",
+        "Personnel and Human Resources"
+      ],
+      "Skills": [
+        "Management of Personnel Resources",
+        "Negotiation",
+        "Persuasion",
+        "Coordination",
+        "Time Management"
+      ],
+      "Work Activities": [
+        "Guiding, Directing, and Motivating Subordinates",
+        "Developing and Building Teams",
+        "Coaching and Developing Others",
+        "Developing Objectives and Strategies"
+      ],
+      "Work Styles": [
+        "Leadership Orientation",
+        "Initiative",
+        "Achievement Orientation",
+        "Integrity"
+      ]
+    },
+    "mapping_strength": "Strong",
+    "notes": "Leadership development maps well to management and leadership O*NET dimensions"
+  }
+}

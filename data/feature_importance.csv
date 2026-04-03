@@ -1,0 +1,238 @@
+feature,importance,domain,dimension
+skills:Complex Problem Solving,0.03728239528475708,skills,Complex Problem Solving
+skills:Reading Comprehension,0.028682425105546517,skills,Reading Comprehension
+abilities:Deductive Reasoning,0.027075091208544677,abilities,Deductive Reasoning
+skills:Writing,0.026134968843151994,skills,Writing
+abilities:Written Expression,0.02591475006063098,abilities,Written Expression
+abilities:Inductive Reasoning,0.024172027369301484,abilities,Inductive Reasoning
+work_context:Freedom to Make Decisions,0.023871642273472788,work_context,Freedom to Make Decisions
+abilities:Written Comprehension,0.023730945182671454,abilities,Written Comprehension
+skills:Judgment and Decision Making,0.021460337960374224,skills,Judgment and Decision Making
+skills:Active Listening,0.021438782889504102,skills,Active Listening
+skills:Critical Thinking,0.019820997906994632,skills,Critical Thinking
+work_styles:Intellectual Curiosity,0.019154183130196494,work_styles,Intellectual Curiosity
+skills:Active Learning,0.017528029782364368,skills,Active Learning
+abilities:Oral Expression,0.016965854006681238,abilities,Oral Expression
+skills:Systems Evaluation,0.015147309935263633,skills,Systems Evaluation
+abilities:Oral Comprehension,0.014996467809815575,abilities,Oral Comprehension
+skills:Speaking,0.014265358897646081,skills,Speaking
+work_styles:Leadership Orientation,0.013923305662427944,work_styles,Leadership Orientation
+work_styles:Achievement Orientation,0.01328650148090135,work_styles,Achievement Orientation
+skills:Systems Analysis,0.013032706578104956,skills,Systems Analysis
+work_styles:Innovation,0.012607814773152199,work_styles,Innovation
+skills:Management of Personnel Resources,0.012272190538659196,skills,Management of Personnel Resources
+abilities:Fluency of Ideas,0.012075090176819727,abilities,Fluency of Ideas
+"work_context:Determine Tasks, Priorities and Goals",0.009834037728729218,work_context,"Determine Tasks, Priorities and Goals"
+knowledge:Biology,0.009089729699897242,knowledge,Biology
+abilities:Originality,0.008736847130512253,abilities,Originality
+knowledge:Medicine and Dentistry,0.008626172006759237,knowledge,Medicine and Dentistry
+skills:Science,0.008382825706114884,skills,Science
+work_activities:Providing Consultation and Advice to Others,0.008181878542193518,work_activities,Providing Consultation and Advice to Others
+work_activities:Making Decisions and Solving Problems,0.008031550588929548,work_activities,Making Decisions and Solving Problems
+work_styles:Self-Confidence,0.007756859854747447,work_styles,Self-Confidence
+skills:Learning Strategies,0.00743674470798513,skills,Learning Strategies
+work_activities:Getting Information,0.007292347935403595,work_activities,Getting Information
+abilities:Memorization,0.006810066387210957,abilities,Memorization
+skills:Programming,0.00634688505568922,skills,Programming
+abilities:Problem Sensitivity,0.006272433190224793,abilities,Problem Sensitivity
+skills:Time Management,0.006052548796897738,skills,Time Management
+skills:Monitoring,0.005766333285698598,skills,Monitoring
+skills:Social Perceptiveness,0.0056427650712127025,skills,Social Perceptiveness
+work_context:Frequency of Decision Making,0.0056356749399767096,work_context,Frequency of Decision Making
+knowledge:Education and Training,0.005522173298247682,knowledge,Education and Training
+work_context:Level of Competition,0.0049573117512945195,work_context,Level of Competition
+knowledge:English Language,0.0049405849238015435,knowledge,English Language
+work_context:Written Letters and Memos,0.004849231427122046,work_context,Written Letters and Memos
+work_context:Physical Proximity,0.0048215993210447335,work_context,Physical Proximity
+abilities:Spatial Orientation,0.0047520652142657325,abilities,Spatial Orientation
+work_activities:Assisting and Caring for Others,0.004467774022647648,work_activities,Assisting and Caring for Others
+work_styles:Initiative,0.004425321039570686,work_styles,Initiative
+abilities:Speech Clarity,0.004291437880002659,abilities,Speech Clarity
+knowledge:Law and Government,0.004223021651060318,knowledge,Law and Government
+abilities:Information Ordering,0.0042199988419902934,abilities,Information Ordering
+knowledge:Therapy and Counseling,0.004184216934314308,knowledge,Therapy and Counseling
+work_context:Pace Determined by Speed of Equipment,0.004150102816961187,work_context,Pace Determined by Speed of Equipment
+work_context:Exposed to Very Hot or Cold Temperatures,0.0041303608403475515,work_context,Exposed to Very Hot or Cold Temperatures
+knowledge:Administrative,0.0040011350297759945,knowledge,Administrative
+knowledge:Sociology and Anthropology,0.0039395059413799,knowledge,Sociology and Anthropology
+work_context:Spend Time Making Repetitive Motions,0.003890307664568884,work_context,Spend Time Making Repetitive Motions
+skills:Instructing,0.003879475960969191,skills,Instructing
+skills:Coordination,0.003840134130812102,skills,Coordination
+abilities:Category Flexibility,0.0038308205848217934,abilities,Category Flexibility
+work_activities:Updating and Using Relevant Knowledge,0.003828155264429946,work_activities,Updating and Using Relevant Knowledge
+work_context:Impact of Decisions on Co-workers or Company Results,0.0037847496874080884,work_context,Impact of Decisions on Co-workers or Company Results
+work_context:Spend Time Sitting,0.0036718488861395655,work_context,Spend Time Sitting
+"work_activities:Operating Vehicles, Mechanized Devices, or Equipment",0.003661384745476923,work_activities,"Operating Vehicles, Mechanized Devices, or Equipment"
+work_context:Public Speaking,0.003645207379966192,work_context,Public Speaking
+abilities:Near Vision,0.0036448378233755337,abilities,Near Vision
+work_context:E-Mail,0.0036309238907566077,work_context,E-Mail
+"work_context:Outdoors, Under Cover",0.003605936844625271,work_context,"Outdoors, Under Cover"
+work_context:Degree of Automation,0.0035769522922155144,work_context,Degree of Automation
+work_context:Coordinate or Lead Others in Accomplishing Work Activities,0.0034951342133986126,work_context,Coordinate or Lead Others in Accomplishing Work Activities
+skills:Persuasion,0.003455037828513112,skills,Persuasion
+work_activities:Interpreting the Meaning of Information for Others,0.003396270183693994,work_activities,Interpreting the Meaning of Information for Others
+work_context:In an Enclosed Vehicle or Operate Enclosed Equipment,0.0033407885739375194,work_context,In an Enclosed Vehicle or Operate Enclosed Equipment
+work_context:Work Outcomes and Results of Other Workers,0.00328070589226224,work_context,Work Outcomes and Results of Other Workers
+knowledge:Personnel and Human Resources,0.003273897080670609,knowledge,Personnel and Human Resources
+work_activities:Performing Administrative Activities,0.0032563480773709938,work_activities,Performing Administrative Activities
+work_context:Spend Time Walking or Running,0.003254341813343104,work_context,Spend Time Walking or Running
+work_activities:Handling and Moving Objects,0.0032390587930955983,work_activities,Handling and Moving Objects
+knowledge:Psychology,0.0031290196761851363,knowledge,Psychology
+work_styles:Cautiousness,0.0031068699492950618,work_styles,Cautiousness
+work_activities:Communicating with People Outside the Organization,0.0031011838938042255,work_activities,Communicating with People Outside the Organization
+work_styles:Tolerance for Ambiguity,0.003088670089285571,work_styles,Tolerance for Ambiguity
+abilities:Number Facility,0.003016321242425317,abilities,Number Facility
+abilities:Speed of Closure,0.0029041347548285647,abilities,Speed of Closure
+work_activities:Repairing and Maintaining Mechanical Equipment,0.0028966710831193274,work_activities,Repairing and Maintaining Mechanical Equipment
+work_context:Face-to-Face Discussions with Individuals and Within Teams,0.002893838808774474,work_context,Face-to-Face Discussions with Individuals and Within Teams
+work_context:Exposed to Disease or Infections,0.0028861579707490635,work_context,Exposed to Disease or Infections
+work_styles:Adaptability,0.0028706667807085386,work_styles,Adaptability
+knowledge:Transportation,0.0028513233967831318,knowledge,Transportation
+knowledge:Philosophy and Theology,0.002850842241041564,knowledge,Philosophy and Theology
+skills:Technology Design,0.002823998032010867,skills,Technology Design
+work_context:Deal With External Customers or the Public in General,0.0028085133518951943,work_context,Deal With External Customers or the Public in General
+work_activities:Repairing and Maintaining Electronic Equipment,0.0027480357146517647,work_activities,Repairing and Maintaining Electronic Equipment
+knowledge:Customer and Personal Service,0.0027433528881294442,knowledge,Customer and Personal Service
+work_activities:Working with Computers,0.002737708017742104,work_activities,Working with Computers
+work_context:Importance of Repeating Same Tasks,0.0026854752829002277,work_context,Importance of Repeating Same Tasks
+work_activities:Scheduling Work and Activities,0.002675745694606198,work_activities,Scheduling Work and Activities
+knowledge:Foreign Language,0.002671297190383257,knowledge,Foreign Language
+abilities:Stamina,0.0026587043519097787,abilities,Stamina
+work_styles:Perseverance,0.0026106028038387747,work_styles,Perseverance
+knowledge:Telecommunications,0.002608664861323265,knowledge,Telecommunications
+work_activities:Establishing and Maintaining Interpersonal Relationships,0.0025902479794630115,work_activities,Establishing and Maintaining Interpersonal Relationships
+knowledge:History and Archeology,0.002582432981763646,knowledge,History and Archeology
+work_activities:Developing Objectives and Strategies,0.002562013088489541,work_activities,Developing Objectives and Strategies
+knowledge:Economics and Accounting,0.0025601847702514517,knowledge,Economics and Accounting
+work_activities:Staffing Organizational Units,0.002539075708734069,work_activities,Staffing Organizational Units
+work_context:Spend Time Keeping or Regaining Balance,0.002520036661798269,work_context,Spend Time Keeping or Regaining Balance
+knowledge:Computers and Electronics,0.0025068108601135975,knowledge,Computers and Electronics
+"work_activities:Organizing, Planning, and Prioritizing Work",0.002505995505818671,work_activities,"Organizing, Planning, and Prioritizing Work"
+work_styles:Self-Control,0.002496355841069351,work_styles,Self-Control
+work_activities:Performing for or Working Directly with the Public,0.0024867487205446417,work_activities,Performing for or Working Directly with the Public
+"work_context:Dealing With Unpleasant, Angry, or Discourteous People",0.0024829145272284824,work_context,"Dealing With Unpleasant, Angry, or Discourteous People"
+"work_activities:Judging the Qualities of Objects, Services, or People",0.0024795186369472796,work_activities,"Judging the Qualities of Objects, Services, or People"
+work_context:Dealing with Violent or Physically Aggressive People,0.002405713067880967,work_context,Dealing with Violent or Physically Aggressive People
+knowledge:Building and Construction,0.0024029713395149707,knowledge,Building and Construction
+abilities:Mathematical Reasoning,0.0023867990660781857,abilities,Mathematical Reasoning
+abilities:Flexibility of Closure,0.0023579995379679774,abilities,Flexibility of Closure
+work_styles:Attention to Detail,0.0023574232627448697,work_styles,Attention to Detail
+work_styles:Sincerity,0.0023459384050171835,work_styles,Sincerity
+"work_context:Indoors, Not Environmentally Controlled",0.002334586194425324,work_context,"Indoors, Not Environmentally Controlled"
+skills:Negotiation,0.002251511991084709,skills,Negotiation
+work_activities:Documenting/Recording Information,0.002222316633704081,work_activities,Documenting/Recording Information
+work_activities:Selling or Influencing Others,0.002214100727545492,work_activities,Selling or Influencing Others
+"work_context:Spend Time Kneeling, Crouching, Stooping, or Crawling",0.002187753915016625,work_context,"Spend Time Kneeling, Crouching, Stooping, or Crawling"
+work_styles:Optimism,0.00217984957179815,work_styles,Optimism
+skills:Operations Analysis,0.0021729437922248236,skills,Operations Analysis
+knowledge:Production and Processing,0.0021558740883389064,knowledge,Production and Processing
+knowledge:Administration and Management,0.002127038915926551,knowledge,Administration and Management
+work_context:Consequence of Error,0.002108764180467454,work_context,Consequence of Error
+knowledge:Food Production,0.0020575249004101525,knowledge,Food Production
+abilities:Finger Dexterity,0.0020483160909452384,abilities,Finger Dexterity
+work_context:Contact With Others,0.002024015539884833,work_context,Contact With Others
+knowledge:Chemistry,0.0019681826503353994,knowledge,Chemistry
+skills:Troubleshooting,0.0019622024500379233,skills,Troubleshooting
+work_styles:Cooperation,0.001961262816610292,work_styles,Cooperation
+abilities:Speech Recognition,0.001957823032879676,abilities,Speech Recognition
+work_context:Spend Time Standing,0.0019384110646852944,work_context,Spend Time Standing
+"work_context:Spend Time Using Your Hands to Handle, Control, or Feel Objects, Tools, or Controls",0.0019236627025412995,work_context,"Spend Time Using Your Hands to Handle, Control, or Feel Objects, Tools, or Controls"
+work_context:Work With or Contribute to a Work Group or Team,0.0018467954434182791,work_context,Work With or Contribute to a Work Group or Team
+"work_activities:Estimating the Quantifiable Characteristics of Products, Events, or Information",0.001846778127875462,work_activities,"Estimating the Quantifiable Characteristics of Products, Events, or Information"
+knowledge:Physics,0.0018362282504805934,knowledge,Physics
+knowledge:Sales and Marketing,0.0018352655906382497,knowledge,Sales and Marketing
+knowledge:Mathematics,0.0018238822813850051,knowledge,Mathematics
+"work_context:Exposed to Minor Burns, Cuts, Bites, or Stings",0.00179820102713766,work_context,"Exposed to Minor Burns, Cuts, Bites, or Stings"
+work_activities:Coaching and Developing Others,0.0017796448715811965,work_activities,Coaching and Developing Others
+knowledge:Public Safety and Security,0.0017582294031449255,knowledge,Public Safety and Security
+abilities:Manual Dexterity,0.001747549915984384,abilities,Manual Dexterity
+work_context:Conflict Situations,0.0017378377594225555,work_context,Conflict Situations
+work_activities:Evaluating Information to Determine Compliance with Standards,0.0017293491372850835,work_activities,Evaluating Information to Determine Compliance with Standards
+abilities:Hearing Sensitivity,0.0017258301557534312,abilities,Hearing Sensitivity
+skills:Management of Financial Resources,0.0017145756054127938,skills,Management of Financial Resources
+abilities:Peripheral Vision,0.0016872464263370714,abilities,Peripheral Vision
+knowledge:Design,0.00168365395064931,knowledge,Design
+abilities:Trunk Strength,0.0016329837799704085,abilities,Trunk Strength
+"work_context:Outdoors, Exposed to All Weather Conditions",0.0016132187449349686,work_context,"Outdoors, Exposed to All Weather Conditions"
+abilities:Arm-Hand Steadiness,0.0016082200972184551,abilities,Arm-Hand Steadiness
+work_styles:Empathy,0.001593953579721085,work_styles,Empathy
+abilities:Dynamic Strength,0.0015842414824229476,abilities,Dynamic Strength
+abilities:Gross Body Coordination,0.0015718091491664882,abilities,Gross Body Coordination
+work_context:Health and Safety of Other Workers,0.0015671949379546285,work_context,Health and Safety of Other Workers
+"work_context:Exposed to Sounds, Noise Levels that are Distracting or Uncomfortable",0.0015420786334404148,work_context,"Exposed to Sounds, Noise Levels that are Distracting or Uncomfortable"
+knowledge:Communications and Media,0.0015411145351601169,knowledge,Communications and Media
+abilities:Response Orientation,0.0015321511650548665,abilities,Response Orientation
+work_context:Spend Time Bending or Twisting Your Body,0.0015113460282693157,work_context,Spend Time Bending or Twisting Your Body
+work_styles:Humility,0.0015092893660620006,work_styles,Humility
+abilities:Gross Body Equilibrium,0.0015042644868478977,abilities,Gross Body Equilibrium
+"work_activities:Guiding, Directing, and Motivating Subordinates",0.0015009999121926526,work_activities,"Guiding, Directing, and Motivating Subordinates"
+"work_context:Wear Common Protective or Safety Equipment such as Safety Shoes, Glasses, Gloves, Hearing Protection, Hard Hats, or Life Jackets",0.0014793313126648686,work_context,"Wear Common Protective or Safety Equipment such as Safety Shoes, Glasses, Gloves, Hearing Protection, Hard Hats, or Life Jackets"
+abilities:Sound Localization,0.001476611531745712,abilities,Sound Localization
+"work_activities:Monitoring Processes, Materials, or Surroundings",0.0014709612534053078,work_activities,"Monitoring Processes, Materials, or Surroundings"
+work_activities:Processing Information,0.0014421641560729852,work_activities,Processing Information
+"work_context:Exposed to Cramped Work Space, Awkward Positions",0.0014356129476193055,work_context,"Exposed to Cramped Work Space, Awkward Positions"
+"work_activities:Drafting, Laying Out, and Specifying Technical Devices, Parts, and Equipment",0.0014228675221387187,work_activities,"Drafting, Laying Out, and Specifying Technical Devices, Parts, and Equipment"
+work_activities:Thinking Creatively,0.0014198051620579219,work_activities,Thinking Creatively
+work_activities:Monitoring and Controlling Resources,0.0014117345062684334,work_activities,Monitoring and Controlling Resources
+"work_activities:Communicating with Supervisors, Peers, or Subordinates",0.001406617815959251,work_activities,"Communicating with Supervisors, Peers, or Subordinates"
+abilities:Wrist-Finger Speed,0.001384239434551571,abilities,Wrist-Finger Speed
+abilities:Extent Flexibility,0.0013685383659230615,abilities,Extent Flexibility
+work_activities:Controlling Machines and Processes,0.0013650402348598354,work_activities,Controlling Machines and Processes
+abilities:Speed of Limb Movement,0.001361210275851293,abilities,Speed of Limb Movement
+work_context:Importance of Being Exact or Accurate,0.0013573805258672556,work_context,Importance of Being Exact or Accurate
+work_context:Exposed to Radiation,0.0013342571469436334,work_context,Exposed to Radiation
+abilities:Night Vision,0.0013268165852331193,abilities,Night Vision
+work_activities:Developing and Building Teams,0.0012837884944684197,work_activities,Developing and Building Teams
+work_context:Exposed to Contaminants,0.0012835175360454531,work_context,Exposed to Contaminants
+abilities:Visualization,0.0012610712785568925,abilities,Visualization
+"work_context:Indoors, Environmentally Controlled",0.0012252292214321502,work_context,"Indoors, Environmentally Controlled"
+abilities:Static Strength,0.0012119113803341097,abilities,Static Strength
+work_context:Exposed to Hazardous Equipment,0.0012077199423411024,work_context,Exposed to Hazardous Equipment
+abilities:Multilimb Coordination,0.0011954906830752513,abilities,Multilimb Coordination
+work_activities:Training and Teaching Others,0.001184086182055287,work_activities,Training and Teaching Others
+work_activities:Performing General Physical Activities,0.0011799247946731157,work_activities,Performing General Physical Activities
+knowledge:Fine Arts,0.0011762542259872591,knowledge,Fine Arts
+"work_activities:Identifying Objects, Actions, and Events",0.0011649172533937202,work_activities,"Identifying Objects, Actions, and Events"
+skills:Mathematics,0.0011476175522662998,skills,Mathematics
+work_context:Exposed to Hazardous Conditions,0.0011070601904696637,work_context,Exposed to Hazardous Conditions
+skills:Repairing,0.001101659363607525,skills,Repairing
+knowledge:Geography,0.0010947680997523176,knowledge,Geography
+work_activities:Analyzing Data or Information,0.0010858595787122413,work_activities,Analyzing Data or Information
+work_context:Time Pressure,0.0010823815350997103,work_context,Time Pressure
+skills:Service Orientation,0.0010810876877534086,skills,Service Orientation
+"work_activities:Inspecting Equipment, Structures, or Materials",0.0010693430755218565,work_activities,"Inspecting Equipment, Structures, or Materials"
+work_context:Exposed to Extremely Bright or Inadequate Lighting Conditions,0.0010601545384926025,work_context,Exposed to Extremely Bright or Inadequate Lighting Conditions
+abilities:Perceptual Speed,0.0010494549611449475,abilities,Perceptual Speed
+knowledge:Mechanical,0.0010493564974817058,knowledge,Mechanical
+abilities:Control Precision,0.0010451443542445625,abilities,Control Precision
+work_styles:Social Orientation,0.0010246319956157331,work_styles,Social Orientation
+work_activities:Coordinating the Work and Activities of Others,0.0010172031782787437,work_activities,Coordinating the Work and Activities of Others
+"work_context:Wear Specialized Protective or Safety Equipment such as Breathing Apparatus, Safety Harness, Full Protection Suits, or Radiation Protection",0.0009855766731748687,work_context,"Wear Specialized Protective or Safety Equipment such as Breathing Apparatus, Safety Harness, Full Protection Suits, or Radiation Protection"
+skills:Equipment Selection,0.0009796483409261808,skills,Equipment Selection
+knowledge:Engineering and Technology,0.0009732603624052716,knowledge,Engineering and Technology
+skills:Equipment Maintenance,0.0009714555896037455,skills,Equipment Maintenance
+skills:Management of Material Resources,0.0009067149283948365,skills,Management of Material Resources
+abilities:Selective Attention,0.0009013799606369192,abilities,Selective Attention
+work_styles:Integrity,0.000897598858301646,work_styles,Integrity
+abilities:Dynamic Flexibility,0.0008950309076950205,abilities,Dynamic Flexibility
+skills:Quality Control Analysis,0.0008909838704412909,skills,Quality Control Analysis
+work_styles:Dependability,0.0008835794280623697,work_styles,Dependability
+work_context:Exposed to Whole Body Vibration,0.0008739421581216918,work_context,Exposed to Whole Body Vibration
+work_context:Telephone Conversations,0.0008714469380663356,work_context,Telephone Conversations
+work_context:Exposed to High Places,0.0008130295686806957,work_context,Exposed to High Places
+abilities:Rate Control,0.0007984070422550642,abilities,Rate Control
+"work_context:Spend Time Climbing Ladders, Scaffolds, or Poles",0.0007637683108023045,work_context,"Spend Time Climbing Ladders, Scaffolds, or Poles"
+work_activities:Resolving Conflicts and Negotiating with Others,0.0007256195193272877,work_activities,Resolving Conflicts and Negotiating with Others
+abilities:Far Vision,0.0006804524185338663,abilities,Far Vision
+abilities:Explosive Strength,0.0005952723007772788,abilities,Explosive Strength
+abilities:Reaction Time,0.0005786572778109003,abilities,Reaction Time
+work_styles:Stress Tolerance,0.0005487613874430999,work_styles,Stress Tolerance
+work_context:In an Open Vehicle or Operating Equipment,0.0005443141224526852,work_context,In an Open Vehicle or Operating Equipment
+skills:Operation and Control,0.0005396605061952275,skills,Operation and Control
+abilities:Time Sharing,0.0005017923785957897,abilities,Time Sharing
+abilities:Glare Sensitivity,0.0004079971649115951,abilities,Glare Sensitivity
+skills:Operations Monitoring,0.0003995679798213153,skills,Operations Monitoring
+abilities:Visual Color Discrimination,0.0003608892742534188,abilities,Visual Color Discrimination
+abilities:Depth Perception,0.0002765261598649745,abilities,Depth Perception
+abilities:Auditory Attention,0.00027283288697767905,abilities,Auditory Attention
+skills:Installation,0.00011892213505506937,skills,Installation
