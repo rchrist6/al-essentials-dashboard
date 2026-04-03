@@ -23,6 +23,7 @@ import json
 import os
 import io
 from datetime import datetime
+from fpdf import FPDF
 
 # ── Page Config ───────────────────────────────────────────────────
 st.set_page_config(
@@ -359,7 +360,7 @@ def main():
     page = st.sidebar.radio(
         "Go to",
         ["Home", "Self-Assessment", "Gap Analysis", "Learning Roadmap",
-         "My Report", "ML Insights", "About"]
+         "My Report", "Faculty Analytics", "About"]
     )
 
     if page == "Home":
@@ -372,7 +373,7 @@ def main():
         render_learning_roadmap(crosswalk, np_benchmark, feat_imp)
     elif page == "My Report":
         render_my_report(crosswalk, np_benchmark, feat_imp, df)
-    elif page == "ML Insights":
+    elif page == "Faculty Analytics":
         render_ml_insights(feat_imp, model_comp, clusters, df)
     elif page == "About":
         render_about()
@@ -603,20 +604,37 @@ def render_self_assessment(crosswalk):
             for comp_id in crosswalk:
                 st.session_state.self_assessment[comp_id] = 3
             st.rerun()
-    with col3:
-        uploaded = st.file_uploader(
-            "Import Previous Assessment", type=['csv'],
-            help="Upload a CSV exported from a prior session to restore your scores.",
+    with col1:
+        uploaded_restore = st.file_uploader(
+            "Restore a Previous Assessment", type=['csv'],
+            help="Upload a CSV from a prior session to restore your scores.",
             key="import_csv"
         )
-        if uploaded is not None:
-            imported = parse_imported_csv(uploaded)
+        if uploaded_restore is not None:
+            imported = parse_imported_csv(uploaded_restore)
             if imported:
                 st.session_state.self_assessment = imported
-                st.success(f"Imported {len(imported)} scores from previous assessment.")
+                st.success(f"Imported {len(imported)} scores.")
                 st.rerun()
             else:
-                st.error("Could not parse the uploaded file. Is it from this dashboard?")
+                st.error("Could not parse the file.")
+    with col3:
+        uploaded_compare = st.file_uploader(
+            "Upload Baseline for Progress Tracking", type=['csv'],
+            help="Upload an EARLIER assessment to compare against your current scores.",
+            key="import_baseline"
+        )
+        if uploaded_compare is not None:
+            baseline = parse_imported_csv(uploaded_compare)
+            if baseline:
+                st.session_state.previous_assessment = baseline
+                st.success(
+                    f"Baseline loaded ({len(baseline)} scores). "
+                    f"Complete your new assessment, then check Gap Analysis "
+                    f"to see your progress."
+                )
+            else:
+                st.error("Could not parse the baseline file.")
 
     # Render by domain
     for d_num in sorted(domains.keys(), key=int):
@@ -702,27 +720,95 @@ def render_self_assessment(crosswalk):
 
 # ── Page: Gap Analysis ────────────────────────────────────────────
 def render_gap_analysis(crosswalk, np_benchmark, feat_imp, df):
-    st.title("ML-Weighted Gap Analysis")
+    st.title("Competency Gap Analysis")
 
     if not st.session_state.get('self_assessment'):
         st.warning("Please complete the Self-Assessment first.")
         return
 
+    # Explanation for students
+    with st.expander("How does this analysis work?", expanded=False):
+        st.markdown(
+            "This page compares your self-assessment scores against the "
+            "**Nurse Practitioner workforce benchmark** derived from O*NET, "
+            "the U.S. Department of Labor's occupational database.\n\n"
+            "Not all gaps are equally important. Machine learning analysis of "
+            "237 workforce competency dimensions identified which ones best "
+            "distinguish advanced practice roles from other healthcare "
+            "occupations. Competencies linked to those high-importance "
+            "dimensions are **weighted more heavily** in your results.\n\n"
+            "In plain terms: a gap in *Complex Problem Solving* (the #1 "
+            "predictor of advanced practice) matters more than a gap in a "
+            "dimension that doesn't differentiate practice levels."
+        )
+
     gaps_df = compute_gap_scores(
         st.session_state.self_assessment, crosswalk, np_benchmark, feat_imp
     )
 
+    # Add importance rank for student-friendly labels
+    imp_sorted = gaps_df.sort_values('ml_importance', ascending=False).reset_index(drop=True)
+    imp_sorted['importance_rank'] = range(1, len(imp_sorted) + 1)
+    rank_map = dict(zip(imp_sorted['competency_id'], imp_sorted['importance_rank']))
+    gaps_df['importance_rank'] = gaps_df['competency_id'].map(rank_map)
+
+    def importance_label(rank):
+        if rank <= 5:
+            return "Very High"
+        elif rank <= 15:
+            return "High"
+        elif rank <= 30:
+            return "Moderate"
+        else:
+            return "Lower"
+
+    gaps_df['importance_level'] = gaps_df['importance_rank'].apply(importance_label)
+
     # Summary metrics
+    positive_gaps = gaps_df[gaps_df['gap'] > 0]
+    high_priority = positive_gaps[positive_gaps['importance_rank'] <= 15]
+
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Avg Gap", f"{gaps_df['gap'].mean():.3f}")
-    with col2:
-        st.metric("Largest Gap", f"{gaps_df['gap'].max():.3f}")
-    with col3:
-        positive_gaps = gaps_df[gaps_df['gap'] > 0]
         st.metric("Competencies with Gaps", len(positive_gaps))
+    with col2:
+        st.metric("High-Priority Gaps", len(high_priority),
+                  help="Gaps in competencies ranked in the top 15 by workforce importance")
+    with col3:
+        st.metric("Strongest Domain",
+                  gaps_df.groupby('aacn_domain_name')['student_score'].mean().idxmax()[:20])
     with col4:
-        st.metric("Avg Weighted Gap", f"{gaps_df['weighted_gap'].mean():.3f}")
+        if not positive_gaps.empty:
+            biggest = positive_gaps.sort_values('weighted_gap', ascending=False).iloc[0]
+            st.metric("Top Priority",
+                      f"{biggest['competency_id']}",
+                      help=biggest['competency'][:60])
+        else:
+            st.metric("Top Priority", "None")
+
+    # Progress comparison
+    if 'previous_assessment' in st.session_state:
+        st.markdown("---")
+        st.subheader("Progress Since Last Assessment")
+        prev = st.session_state.previous_assessment
+        curr = st.session_state.self_assessment
+        improved = sum(1 for k in curr if k in prev and curr[k] > prev[k])
+        declined = sum(1 for k in curr if k in prev and curr[k] < prev[k])
+        unchanged = sum(1 for k in curr if k in prev and curr[k] == prev[k])
+        prev_mean = np.mean([v for k, v in prev.items() if k in curr])
+        curr_mean = np.mean(list(curr.values()))
+
+        pcol1, pcol2, pcol3, pcol4 = st.columns(4)
+        with pcol1:
+            delta = curr_mean - prev_mean
+            st.metric("Mean Score", f"{curr_mean:.1f}",
+                      delta=f"{delta:+.1f}")
+        with pcol2:
+            st.metric("Improved", improved)
+        with pcol3:
+            st.metric("Unchanged", unchanged)
+        with pcol4:
+            st.metric("Declined", declined)
 
     tab1, tab2, tab3 = st.tabs(["Domain Radar", "Gap Priority Matrix", "Detail Table"])
 
@@ -781,18 +867,23 @@ def render_gap_analysis(crosswalk, np_benchmark, feat_imp, df):
 
     with tab3:
         st.subheader("Detailed Gap Table")
+        st.markdown(
+            "**Workforce Importance** reflects how strongly each competency's "
+            "underlying O*NET dimensions distinguish advanced practice roles "
+            "from other healthcare occupations."
+        )
         display_df = gaps_df.sort_values('weighted_gap', ascending=False)
         display_df = display_df[[
             'competency_id', 'competency', 'aacn_domain_name',
-            'student_score', 'benchmark', 'gap', 'ml_importance',
-            'weighted_gap', 'mapping_strength'
+            'student_score', 'gap', 'importance_level',
+            'importance_rank', 'mapping_strength'
         ]].copy()
         display_df.columns = [
-            'ID', 'Competency', 'Domain', 'Your Score', 'Benchmark',
-            'Gap', 'ML Importance', 'Weighted Gap', 'Mapping Strength'
+            'ID', 'Competency', 'Domain', 'Your Score',
+            'Gap', 'Workforce Importance', 'Importance Rank',
+            'Crosswalk Strength'
         ]
-        for col in ['Benchmark', 'Gap', 'ML Importance', 'Weighted Gap']:
-            display_df[col] = display_df[col].round(4)
+        display_df['Gap'] = display_df['Gap'].round(3)
         st.dataframe(display_df, use_container_width=True, height=600)
 
 
@@ -1201,17 +1292,118 @@ def render_my_report(crosswalk, np_benchmark, feat_imp, df):
     )
 
     report_text = "\n".join(report_lines)
-    st.download_button(
-        "Download Full Report (Text)",
-        data=report_text,
-        file_name=f"competency_report_{datetime.now().strftime('%Y%m%d')}.txt",
-        mime="text/plain",
-    )
+
+    dl_col1, dl_col2 = st.columns(2)
+    with dl_col1:
+        st.download_button(
+            "Download Report (Text)",
+            data=report_text,
+            file_name=f"competency_report_{datetime.now().strftime('%Y%m%d')}.txt",
+            mime="text/plain",
+        )
+    with dl_col2:
+        # Generate PDF
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=20)
+        pdf.add_page()
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.cell(0, 10, "AACN AL Essentials Competency Report", ln=True, align="C")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, f"Date: {date_str}", ln=True, align="C")
+        pdf.cell(0, 6, "Jacksonville University, Keigwin School of Nursing", ln=True, align="C")
+        pdf.ln(8)
+
+        # Summary box
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, f"Overall Readiness: {readiness}", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, f"Mean Score: {mean_score:.1f} / 5.0    |    "
+                       f"Strengths: {len(strengths)}    |    "
+                       f"Growth Areas: {len(gaps_positive)}", ln=True)
+        pdf.ln(4)
+        pdf.multi_cell(0, 5, readiness_narrative)
+        pdf.ln(6)
+
+        # Strengths
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Your Strengths", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        if not strength_domains.empty:
+            pdf.multi_cell(0, 5,
+                f"Strongest domain: {strength_domains.index[0]} "
+                f"({strength_domains.iloc[0]} competencies at Proficient or Expert)."
+            )
+        pdf.ln(4)
+
+        # Priority growth areas
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Priority Growth Areas", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+
+        for i, (_, row) in enumerate(gaps_positive.head(10).iterrows()):
+            level_name = get_level_label(row['student_score'])
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.multi_cell(0, 5,
+                f"{i+1}. {row['competency_id']}: "
+                f"{row['competency'][:70]}"
+            )
+            pdf.set_font("Helvetica", "", 9)
+            pdf.cell(0, 5,
+                f"   Score: {int(row['student_score'])} ({level_name})  |  "
+                f"Benchmark: {row['benchmark']:.2f}  |  "
+                f"Gap: {row['gap']:.3f}", ln=True
+            )
+            pdf.ln(2)
+
+        # Domain summary
+        pdf.add_page()
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Domain Summary", ln=True)
+        pdf.set_font("Helvetica", "", 9)
+        for d_num in sorted(AACN_DOMAIN_NAMES.keys(), key=int):
+            d_name = AACN_DOMAIN_NAMES[d_num]
+            d_comps = gaps_df[gaps_df['aacn_domain'] == d_num]
+            if d_comps.empty:
+                continue
+            d_mean = d_comps['student_score'].mean()
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(0, 6, f"Domain {d_num}: {d_name} (Avg: {d_mean:.1f})", ln=True)
+            pdf.set_font("Helvetica", "", 9)
+            for _, row in d_comps.iterrows():
+                level = get_level_label(row['student_score'])
+                pdf.cell(0, 5,
+                    f"  {row['competency_id']}: {int(row['student_score'])} ({level})",
+                    ln=True
+                )
+            pdf.ln(2)
+
+        # Footer
+        pdf.ln(6)
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.multi_cell(0, 4,
+            "Data Source: O*NET 30.1 (December 2025), CC-BY 4.0 License. "
+            "National Center for O*NET Development. "
+            "U.S. Department of Labor, Employment and Training Administration. "
+            "Dashboard: Jacksonville University, DSIM 608 Capstone."
+        )
+
+        pdf_bytes = pdf.output()
+        st.download_button(
+            "Download Report (PDF)",
+            data=bytes(pdf_bytes),
+            file_name=f"competency_report_{datetime.now().strftime('%Y%m%d')}.pdf",
+            mime="application/pdf",
+        )
 
 
 # ── Page: ML Insights ─────────────────────────────────────────────
 def render_ml_insights(feat_imp, model_comp, clusters, df):
-    st.title("Machine Learning Insights")
+    st.title("Faculty Analytics")
+    st.markdown(
+        "This page shows the machine learning methods behind the dashboard's "
+        "competency weighting system. It is designed for faculty, program "
+        "directors, and analytics audiences."
+    )
 
     tab1, tab2, tab3 = st.tabs(["Feature Importance", "Model Comparison", "Cluster Profiles"])
 
