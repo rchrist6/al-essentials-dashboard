@@ -95,6 +95,26 @@ DREYFUS_SCALE = {
     5: "Expert",
 }
 
+MILLERS_SCALE = {
+    1: "Knows",
+    2: "Knows How",
+    3: "Shows How",
+    4: "Does",
+    5: "Teaches/Leads",
+}
+
+SCALE_OPTIONS = {
+    "Dreyfus/Benner": DREYFUS_SCALE,
+    "Miller's Pyramid": MILLERS_SCALE,
+}
+
+
+def get_level_label(score):
+    """Get the label for a score using the currently active scale."""
+    scale_name = st.session_state.get('active_scale_name', 'Dreyfus/Benner')
+    scale = SCALE_OPTIONS.get(scale_name, DREYFUS_SCALE)
+    return scale.get(int(score), "")
+
 # Color palette
 COLORS = {
     'primary': '#1B2A4A',
@@ -339,7 +359,7 @@ def main():
     page = st.sidebar.radio(
         "Go to",
         ["Home", "Self-Assessment", "Gap Analysis", "Learning Roadmap",
-         "Occupation Explorer", "ML Insights", "About"]
+         "My Report", "ML Insights", "About"]
     )
 
     if page == "Home":
@@ -350,8 +370,8 @@ def main():
         render_gap_analysis(crosswalk, np_benchmark, feat_imp, df)
     elif page == "Learning Roadmap":
         render_learning_roadmap(crosswalk, np_benchmark, feat_imp)
-    elif page == "Occupation Explorer":
-        render_occupation_explorer(df, jz, clusters)
+    elif page == "My Report":
+        render_my_report(crosswalk, np_benchmark, feat_imp, df)
     elif page == "ML Insights":
         render_ml_insights(feat_imp, model_comp, clusters, df)
     elif page == "About":
@@ -362,48 +382,165 @@ def main():
 def render_home(df, jz, clusters):
     st.title("AL Essentials Competency Self-Assessment Dashboard")
     st.markdown(
-        "An interactive tool integrating **O*NET 30.1 workforce data** with "
-        "**AACN 2021 Advanced-Level Essentials** to support DNP student "
-        "competency development."
+        "An interactive tool for DNP students to assess their competency "
+        "development across the **AACN 2021 Advanced-Level Essentials** "
+        "and receive a personalized, data-driven learning roadmap."
     )
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Healthcare Occupations", df['soc_code'].nunique())
-    with col2:
-        st.metric("Competency Dimensions", df['element_name'].nunique())
-    with col3:
-        st.metric("AACN Competencies", "45")
-    with col4:
-        st.metric("AACN Domains", "10")
+    st.markdown("---")
+
+    # What is this tool?
+    st.subheader("What Is This Tool?")
+    st.markdown(
+        "The AACN (American Association of Colleges of Nursing) published "
+        "the 2021 Essentials framework to define what every nursing graduate "
+        "should know and be able to do. At the Advanced Level (DNP), there are "
+        "**10 domains** and **45 competencies** that describe the full scope "
+        "of practice for nurse practitioners, clinical nurse specialists, "
+        "nurse anesthetists, nurse midwives, and other advanced practice roles."
+    )
+    st.markdown(
+        "This dashboard lets you **rate yourself** on each of those 45 "
+        "competencies, then compares your self-assessment against real "
+        "workforce data from the U.S. Department of Labor (O*NET). Machine "
+        "learning identifies which competencies matter most for advanced "
+        "practice, so your results are weighted by actual workforce importance, "
+        "not just equal treatment of all 45 items."
+    )
 
     st.markdown("---")
-    st.subheader("How to Use This Dashboard")
+
+    # The 10 Domains
+    st.subheader("The 10 AACN Essentials Domains")
+    st.markdown(
+        "Each domain represents a broad area of nursing competence. "
+        "The self-assessment asks you to rate specific competencies within "
+        "each domain."
+    )
+
+    domain_descriptions = {
+        "1": ("Knowledge for Nursing Practice",
+              "The scientific foundation of nursing: biology, pharmacology, "
+              "pathophysiology, and the ability to apply theory and research "
+              "to clinical decisions."),
+        "2": ("Person-Centered Care",
+              "Providing holistic, individualized care: assessment, diagnosis, "
+              "treatment planning, care coordination, and health promotion "
+              "tailored to each patient."),
+        "3": ("Population Health",
+              "Addressing health at the community and population level: "
+              "epidemiology, health equity, disaster preparedness, and "
+              "advocacy for health policy."),
+        "4": ("Scholarship for Nursing Practice",
+              "Generating and applying evidence: conducting research, "
+              "integrating best evidence, disseminating findings, and "
+              "advancing the science of nursing."),
+        "5": ("Quality and Safety",
+              "Ensuring safe, high-quality care: quality improvement methods, "
+              "patient safety culture, and system-level safety initiatives."),
+        "6": ("Interprofessional Partnerships",
+              "Working effectively across disciplines: team communication, "
+              "collaborative decision-making, and shared accountability "
+              "with physicians, pharmacists, social workers, and others."),
+        "7": ("Systems-Based Practice",
+              "Understanding and improving healthcare systems: cost-effectiveness, "
+              "systems thinking, innovation, and organizational leadership."),
+        "8": ("Informatics and Healthcare Technologies",
+              "Using technology to improve care: electronic health records, "
+              "data analytics, telehealth, and information security."),
+        "9": ("Professionalism",
+              "Embodying nursing values: ethical practice, accountability, "
+              "professional identity, regulatory compliance, and commitment "
+              "to diversity, equity, and inclusion."),
+        "10": ("Personal, Professional Development and Leadership",
+               "Lifelong growth and leading others: self-reflection, "
+               "mentorship, resilience, and developing leadership capacity "
+               "to transform healthcare."),
+    }
+
+    col_left, col_right = st.columns(2)
+    for i, (d_num, (d_name, d_desc)) in enumerate(domain_descriptions.items()):
+        col = col_left if i % 2 == 0 else col_right
+        with col:
+            st.markdown(f"**Domain {d_num}: {d_name}**")
+            st.markdown(f"{d_desc}")
+            st.markdown("")
+
+    st.markdown("---")
+
+    # How it works
+    st.subheader("How It Works")
     col_a, col_b, col_c = st.columns(3)
     with col_a:
         st.markdown("**Step 1: Self-Assess**")
         st.markdown(
-            "Rate your competency level on each of the 45 AACN "
-            "Advanced-Level Essentials using the Dreyfus/Benner scale "
-            "(Novice to Expert)."
+            "Go to the **Self-Assessment** page and rate your current "
+            "competency level (1 = Novice through 5 = Expert) on each of "
+            "the 45 competencies. Be honest; this is for your own development."
         )
     with col_b:
-        st.markdown("**Step 2: Analyze Gaps**")
+        st.markdown("**Step 2: Review Your Results**")
         st.markdown(
-            "View your competency gaps weighted by machine learning "
-            "feature importance derived from O*NET workforce data."
+            "The **Gap Analysis** page shows where you stand relative to "
+            "the Nurse Practitioner workforce benchmark, weighted by which "
+            "competencies matter most according to machine learning."
         )
     with col_c:
-        st.markdown("**Step 3: Plan Development**")
+        st.markdown("**Step 3: Plan Your Growth**")
         st.markdown(
-            "Receive a personalized learning roadmap prioritizing "
-            "the competencies with the highest weighted gaps."
+            "The **Learning Roadmap** and **My Report** pages give you "
+            "a prioritized list of development activities and a downloadable "
+            "narrative report you can share with your advisor."
         )
+
+    st.markdown("---")
+
+    # Rating scale explanation
+    st.subheader("Rating Scales")
+    st.markdown(
+        "You can choose between two well-established competency frameworks "
+        "when completing the self-assessment. Both use a 1-5 scale."
+    )
+    tab_benner, tab_miller = st.tabs(["Dreyfus/Benner", "Miller's Pyramid"])
+    with tab_benner:
+        st.markdown(
+            "Patricia Benner's adaptation of the Dreyfus model describes how "
+            "clinicians progress from rule-following to intuitive expertise:"
+        )
+        st.dataframe(pd.DataFrame({
+            'Level': [1, 2, 3, 4, 5],
+            'Label': ['Novice', 'Advanced Beginner', 'Competent', 'Proficient', 'Expert'],
+            'Description': [
+                'New to this area; relies on rules and guidelines',
+                'Recognizes meaningful patterns from experience',
+                'Deliberate planning; sees actions in terms of goals',
+                'Perceives situations holistically; deep experience guides decisions',
+                'Intuitive grasp; fluid, flexible, highly skilled performance',
+            ]
+        }), use_container_width=True, hide_index=True)
+    with tab_miller:
+        st.markdown(
+            "George Miller's pyramid of clinical competence focuses on "
+            "what learners can demonstrate at each stage, from foundational "
+            "knowledge through independent practice and teaching:"
+        )
+        st.dataframe(pd.DataFrame({
+            'Level': [1, 2, 3, 4, 5],
+            'Label': ['Knows', 'Knows How', 'Shows How', 'Does', 'Teaches/Leads'],
+            'Description': [
+                'Can define and explain the concept (foundational knowledge)',
+                'Knows how to apply it; can describe the steps and reasoning',
+                'Can demonstrate in a supervised or simulated setting',
+                'Performs independently in real clinical or professional settings',
+                'Can teach, mentor, or lead others in this competency',
+            ]
+        }), use_container_width=True, hide_index=True)
 
     st.markdown("---")
     st.caption(
         "Data Source: O*NET 30.1 (December 2025), CC-BY 4.0 License. "
-        "National Center for O*NET Development. U.S. Department of Labor."
+        "National Center for O*NET Development. U.S. Department of Labor. "
+        "Dashboard developed at Jacksonville University, Keigwin School of Nursing."
     )
 
 
@@ -411,20 +548,40 @@ def render_home(df, jz, clusters):
 def render_self_assessment(crosswalk):
     st.title("Competency Self-Assessment")
     st.markdown(
-        "Rate your current competency level for each AACN 2021 "
-        "Advanced-Level Essential using the **Dreyfus/Benner** scale."
+        "Rate your current competency level for each of the 45 AACN 2021 "
+        "Advanced-Level Essential competencies. Choose your preferred "
+        "rating framework below."
     )
 
+    # Scale selection
+    scale_choice = st.radio(
+        "Rating Framework",
+        list(SCALE_OPTIONS.keys()),
+        horizontal=True,
+        help="Choose the framework that feels most familiar to you."
+    )
+    active_scale = SCALE_OPTIONS[scale_choice]
+    st.session_state['active_scale_name'] = scale_choice
+
     # Scale legend
-    with st.expander("Rating Scale Guide", expanded=False):
-        for level, label in DREYFUS_SCALE.items():
-            descriptions = {
-                1: "Rule-governed behavior, limited situational perception",
-                2: "Recognizes meaningful aspects of situations from experience",
-                3: "Conscious, deliberate planning; sees actions in terms of goals",
-                4: "Perceives situations as wholes; guided by maxims",
-                5: "Intuitive grasp of situations; fluid, flexible performance",
-            }
+    dreyfus_descriptions = {
+        1: "New to this area; relies on rules and guidelines; limited situational awareness",
+        2: "Recognizes meaningful patterns from experience; beginning to see the bigger picture",
+        3: "Deliberate planning and prioritization; sees actions in terms of long-range goals",
+        4: "Perceives situations holistically; draws on deep experience to guide decisions",
+        5: "Intuitive grasp of situations; fluid, flexible, highly skilled performance",
+    }
+    millers_descriptions = {
+        1: "I can define and explain this concept (foundational knowledge)",
+        2: "I know how to apply this in practice and can describe the steps",
+        3: "I can demonstrate this competency in a supervised or simulated setting",
+        4: "I perform this independently in real clinical or professional settings",
+        5: "I can teach, mentor, or lead others in this competency",
+    }
+    descriptions = millers_descriptions if "Miller" in scale_choice else dreyfus_descriptions
+
+    with st.expander("Rating Scale Guide", expanded=True):
+        for level, label in active_scale.items():
             st.markdown(f"**{level} - {label}**: {descriptions[level]}")
 
     # Initialize session state for assessments
@@ -751,7 +908,7 @@ def render_learning_roadmap(crosswalk, np_benchmark, feat_imp):
             f"(Gap: {row['gap']:.3f}, Weight: {row['weighted_gap']:.3f})"
         ):
             st.markdown(f"**Domain**: {row['aacn_domain_name']}")
-            st.markdown(f"**Your Score**: {row['student_score']} ({DREYFUS_SCALE[row['student_score']]})")
+            st.markdown(f"**Your Score**: {row['student_score']} ({get_level_label(row['student_score'])})")
             st.markdown(f"**Benchmark**: {row['benchmark']:.3f}")
             st.markdown(f"**ML Importance**: {row['ml_importance']:.4f}")
             st.markdown("**Recommended Activities:**")
@@ -759,115 +916,297 @@ def render_learning_roadmap(crosswalk, np_benchmark, feat_imp):
                 st.markdown(f"- {act}")
 
 
-# ── Page: Occupation Explorer ─────────────────────────────────────
-def render_occupation_explorer(df, jz, clusters):
-    st.title("Occupation Explorer")
+# ── Page: My Report ───────────────────────────────────────────────
+def render_my_report(crosswalk, np_benchmark, feat_imp, df):
+    st.title("My Competency Report")
 
-    tab1, tab2, tab3 = st.tabs(["PCA Landscape", "Occupation Comparison", "Cluster Analysis"])
+    if not st.session_state.get('self_assessment'):
+        st.warning("Please complete the Self-Assessment first.")
+        return
 
-    with tab1:
-        st.subheader("Healthcare Occupation Landscape (PCA)")
-        matrix, dim_cols = build_occupation_matrix(df)
+    assessment = st.session_state.self_assessment
+    gaps_df = compute_gap_scores(assessment, crosswalk, np_benchmark, feat_imp)
+    scores = list(assessment.values())
+    mean_score = np.mean(scores)
+    date_str = datetime.now().strftime("%B %d, %Y")
 
-        scaler = StandardScaler()
-        X = scaler.fit_transform(matrix.values)
-        pca = PCA(n_components=3)
-        X_pca = pca.fit_transform(X)
+    # ── Build narrative sections ──────────────────────────────────
 
-        pca_df = pd.DataFrame({
-            'PC1': X_pca[:, 0], 'PC2': X_pca[:, 1], 'PC3': X_pca[:, 2],
-            'soc_code': matrix.index
-        })
-
-        titles_map = dict(zip(df['soc_code'], df['title']))
-        targets_map = dict(zip(df['soc_code'], df['is_target']))
-
-        pca_df['title'] = pca_df['soc_code'].map(titles_map)
-        pca_df['is_target'] = pca_df['soc_code'].map(targets_map)
-        pca_df = pca_df.merge(jz, on='soc_code', how='left')
-
-        if clusters is not None:
-            cluster_map = dict(zip(clusters['soc_code'], clusters['cluster']))
-            pca_df['cluster'] = pca_df['soc_code'].map(cluster_map).fillna(-1).astype(int)
-            pca_df['Cluster'] = pca_df['cluster'].astype(str)
-        else:
-            pca_df['Cluster'] = '0'
-
-        pca_df['Type'] = pca_df['is_target'].map({1: 'Target', 0: 'Other'})
-
-        view_mode = st.radio("Color by", ['Cluster', 'Job Zone', 'Target Status'], horizontal=True)
-
-        if view_mode == 'Cluster':
-            fig = px.scatter(pca_df, x='PC1', y='PC2', color='Cluster',
-                             hover_data=['title', 'job_zone'],
-                             symbol='Type', symbol_map={'Target': 'star', 'Other': 'circle'})
-        elif view_mode == 'Job Zone':
-            pca_df['Job Zone'] = pca_df['job_zone'].astype(str)
-            fig = px.scatter(pca_df, x='PC1', y='PC2', color='Job Zone',
-                             hover_data=['title'],
-                             symbol='Type', symbol_map={'Target': 'star', 'Other': 'circle'})
-        else:
-            fig = px.scatter(pca_df, x='PC1', y='PC2', color='Type',
-                             hover_data=['title', 'job_zone'],
-                             color_discrete_map={'Target': 'red', 'Other': COLORS['primary']})
-
-        fig.update_layout(
-            height=550,
-            xaxis_title=f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}% variance)",
-            yaxis_title=f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}% variance)",
+    # Overall readiness level
+    if mean_score >= 4.5:
+        readiness = "Expert-Level Readiness"
+        readiness_narrative = (
+            "Your overall self-assessment indicates expert-level competency "
+            "across the AACN Advanced-Level Essentials. You demonstrate strong "
+            "confidence in your ability to perform at an advanced practice level."
         )
-        st.plotly_chart(fig, use_container_width=True)
-
-    with tab2:
-        st.subheader("Occupation Comparison")
-        col1, col2 = st.columns(2)
-        with col1:
-            occ1 = st.selectbox("Occupation 1", TARGET_CODES,
-                                format_func=lambda x: OCC_LABELS.get(x, x), key='occ1')
-        with col2:
-            other_codes = [c for c in TARGET_CODES if c != occ1]
-            occ2 = st.selectbox("Occupation 2", other_codes,
-                                format_func=lambda x: OCC_LABELS.get(x, x), key='occ2')
-
-        occ1_data = df[df['soc_code'] == occ1].groupby('domain')['normalized_value'].mean()
-        occ2_data = df[df['soc_code'] == occ2].groupby('domain')['normalized_value'].mean()
-
-        fig = go.Figure()
-        cats = [DOMAIN_LABELS[d] for d in DOMAIN_ORDER]
-
-        for occ_code, occ_data, color, name in [
-            (occ1, occ1_data, COLORS['primary'], OCC_LABELS[occ1]),
-            (occ2, occ2_data, COLORS['accent'], OCC_LABELS[occ2])
-        ]:
-            vals = [occ_data.get(d, 0) for d in DOMAIN_ORDER] + [occ_data.get(DOMAIN_ORDER[0], 0)]
-            fig.add_trace(go.Scatterpolar(
-                r=vals, theta=cats + [cats[0]], fill='toself',
-                name=name, line=dict(color=color, width=2)
-            ))
-
-        fig.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-            height=500, showlegend=True
+    elif mean_score >= 3.5:
+        readiness = "Proficient Readiness"
+        readiness_narrative = (
+            "Your overall self-assessment indicates proficient competency "
+            "across the AACN Essentials. You have a solid foundation with "
+            "targeted areas for continued growth."
         )
+    elif mean_score >= 2.5:
+        readiness = "Competent, Developing"
+        readiness_narrative = (
+            "Your self-assessment indicates competent performance with meaningful "
+            "opportunities for development. Focused attention on priority gaps "
+            "will strengthen your readiness for advanced practice."
+        )
+    else:
+        readiness = "Building Foundations"
+        readiness_narrative = (
+            "Your self-assessment identifies substantial growth opportunities. "
+            "This is normal early in a DNP program. The roadmap below will "
+            "help you prioritize your development."
+        )
+
+    # Identify strengths (score >= 4) and gaps (positive gap value)
+    strengths = gaps_df[gaps_df['student_score'] >= 4].sort_values(
+        'student_score', ascending=False
+    )
+    strength_domains = strengths.groupby('aacn_domain_name').size().sort_values(
+        ascending=False
+    )
+
+    gaps_positive = gaps_df[gaps_df['gap'] > 0].sort_values(
+        'weighted_gap', ascending=False
+    )
+    gap_domains = gaps_positive.groupby('aacn_domain_name').size().sort_values(
+        ascending=False
+    )
+
+    # Domain-level summary
+    domain_summary = gaps_df.groupby('aacn_domain_name').agg({
+        'student_score': 'mean',
+        'gap': 'mean',
+        'weighted_gap': 'mean',
+    }).round(2)
+    domain_summary = domain_summary.sort_values('student_score', ascending=False)
+
+    # Learning activity mapping
+    activity_map = {
+        "1": ["Clinical case analysis", "Evidence-based practice projects",
+              "Literature synthesis seminars"],
+        "2": ["Standardized patient simulations", "Motivational interviewing practice",
+              "Cultural humility workshops"],
+        "3": ["Community health needs assessment", "Epidemiology coursework",
+              "Health equity initiative participation"],
+        "4": ["Systematic review participation", "Quality improvement project leadership",
+              "Manuscript preparation and submission"],
+        "5": ["Root cause analysis exercises", "Patient safety simulations",
+              "Quality metrics dashboard development"],
+        "6": ["Interprofessional team rounds", "Collaborative practice agreement development",
+              "Team-based care project participation"],
+        "7": ["Health policy analysis", "Systems thinking case studies",
+              "Organizational assessment projects"],
+        "8": ["Health informatics coursework", "EHR optimization projects",
+              "Data analytics and visualization workshops"],
+        "9": ["Ethics case study discussions", "Professional portfolio development",
+              "Leadership reflection journaling"],
+        "10": ["Executive coaching or mentorship", "Strategic planning exercises",
+               "Professional development goal-setting"],
+    }
+
+    # ── Render the report ─────────────────────────────────────────
+
+    # Header
+    st.markdown(f"**Report Date:** {date_str}")
+    st.markdown(f"**Competencies Assessed:** {len(scores)} of 45")
+
+    st.markdown("---")
+
+    # Section 1: Overall Readiness
+    st.subheader(f"Overall Readiness: {readiness}")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Mean Score", f"{mean_score:.1f} / 5.0")
+    with col2:
+        st.metric("Strengths (4+)", f"{len(strengths)}")
+    with col3:
+        st.metric("Growth Areas", f"{len(gaps_positive)}")
+    with col4:
+        below = sum(1 for s in scores if s < 3)
+        st.metric("Below Competent", f"{below}")
+
+    st.markdown(readiness_narrative)
+
+    st.markdown("---")
+
+    # Section 2: Your Strengths
+    st.subheader("Your Strengths")
+    if not strength_domains.empty:
+        top_strength = strength_domains.index[0]
+        st.markdown(
+            f"Your strongest domain is **{top_strength}**, where you rated "
+            f"{strength_domains.iloc[0]} of its competencies at Proficient or Expert level. "
+        )
+        if len(strength_domains) > 1:
+            others = ", ".join(strength_domains.index[1:3])
+            st.markdown(f"Other strong domains include **{others}**.")
+
+        # Visual: horizontal bar of domain averages
+        fig = go.Figure(go.Bar(
+            x=domain_summary['student_score'].values,
+            y=domain_summary.index,
+            orientation='h',
+            marker_color=[
+                COLORS['secondary'] if v >= 4 else
+                COLORS['warning'] if v >= 3 else
+                COLORS['accent']
+                for v in domain_summary['student_score'].values
+            ],
+            text=[f"{v:.1f}" for v in domain_summary['student_score'].values],
+            textposition='outside',
+        ))
+        fig.update_layout(
+            xaxis=dict(range=[0, 5.5], title='Average Self-Assessment Score'),
+            yaxis=dict(title=''),
+            height=400,
+            margin=dict(l=10),
+        )
+        fig.add_vline(x=3, line_dash="dash", line_color="gray",
+                      annotation_text="Competent", annotation_position="top")
         st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Complete more of the self-assessment to see your strengths.")
 
-    with tab3:
-        st.subheader("K-Means Cluster Analysis")
-        if clusters is not None:
-            cluster_summary = clusters.groupby('cluster').agg({
-                'soc_code': 'count',
-                'job_zone': lambda x: x.mode().iloc[0] if not x.isna().all() else 'N/A',
-                'is_target': 'sum'
-            }).reset_index()
-            cluster_summary.columns = ['Cluster', 'Occupations', 'Job Zone Mode', 'Target Count']
-            st.dataframe(cluster_summary, use_container_width=True)
+    st.markdown("---")
 
-            fig = px.histogram(clusters, x='cluster', color='cluster',
-                               title='Cluster Size Distribution')
-            fig.update_layout(height=350)
-            st.plotly_chart(fig, use_container_width=True)
+    # Section 3: Priority Growth Areas
+    st.subheader("Priority Growth Areas")
+    if not gaps_positive.empty:
+        st.markdown(
+            f"The analysis identified **{len(gaps_positive)} competencies** where your "
+            f"self-assessment falls below the Nurse Practitioner workforce benchmark. "
+            f"These are ranked below by **weighted priority**, which combines the gap "
+            f"size with the competency's importance for advanced practice (derived from "
+            f"machine learning analysis of O*NET workforce data)."
+        )
+
+        for i, (_, row) in enumerate(gaps_positive.head(5).iterrows()):
+            d_num = row['aacn_domain']
+            level_name = get_level_label(row['student_score'])
+            activities = activity_map.get(d_num, ["General coursework"])
+
+            st.markdown(
+                f"**{i+1}. {row['competency_id']}: {row['competency']}**\n\n"
+                f"You rated yourself at **{int(row['student_score'])} ({level_name})** "
+                f"in this competency, which falls in the **{row['aacn_domain_name']}** "
+                f"domain. The NP workforce benchmark for related O*NET dimensions is "
+                f"**{row['benchmark']:.2f}** (on a 0-1 normalized scale). "
+                f"Machine learning analysis ranks this competency's underlying "
+                f"dimensions at **{row['ml_importance']:.3f}** cumulative importance "
+                f"for distinguishing advanced-level practice from other healthcare roles."
+            )
+            st.markdown("**Recommended development activities:**")
+            for act in activities:
+                st.markdown(f"- {act}")
+            st.markdown("")
+    else:
+        st.success(
+            "No competency gaps detected. Your self-assessment meets or exceeds "
+            "all NP workforce benchmarks."
+        )
+
+    st.markdown("---")
+
+    # Section 4: Domain-by-Domain Summary
+    st.subheader("Domain-by-Domain Summary")
+    for d_num in sorted(AACN_DOMAIN_NAMES.keys(), key=int):
+        d_name = AACN_DOMAIN_NAMES[d_num]
+        d_comps = gaps_df[gaps_df['aacn_domain'] == d_num]
+        if d_comps.empty:
+            continue
+        d_mean = d_comps['student_score'].mean()
+        d_gaps = d_comps[d_comps['gap'] > 0]
+
+        if d_mean >= 4:
+            icon = "**Strong**"
+        elif d_mean >= 3:
+            icon = "Developing"
         else:
-            st.info("Cluster data not available. Run Week 4 ML script first.")
+            icon = "Needs Focus"
+
+        with st.expander(f"Domain {d_num}: {d_name} (Avg: {d_mean:.1f}, {icon})"):
+            for _, row in d_comps.iterrows():
+                level = get_level_label(row['student_score'])
+                gap_indicator = ""
+                if row['gap'] > 0:
+                    gap_indicator = f" | Gap: {row['gap']:.2f}"
+                st.markdown(
+                    f"- **{row['competency_id']}**: {row['competency'][:70]}... "
+                    f"Score: {int(row['student_score'])} ({level}){gap_indicator}"
+                )
+
+    st.markdown("---")
+
+    # Section 5: Download full report as text
+    st.subheader("Download Your Report")
+
+    report_lines = []
+    report_lines.append("=" * 60)
+    report_lines.append("AACN AL ESSENTIALS COMPETENCY SELF-ASSESSMENT REPORT")
+    report_lines.append("=" * 60)
+    report_lines.append(f"Date: {date_str}")
+    report_lines.append(f"Competencies Assessed: {len(scores)} of 45")
+    report_lines.append(f"Overall Readiness: {readiness}")
+    report_lines.append(f"Mean Score: {mean_score:.1f} / 5.0")
+    report_lines.append(f"Strengths (score >= 4): {len(strengths)}")
+    report_lines.append(f"Growth Areas: {len(gaps_positive)}")
+    report_lines.append("")
+    report_lines.append(readiness_narrative)
+    report_lines.append("")
+    report_lines.append("-" * 60)
+    report_lines.append("PRIORITY GROWTH AREAS (ranked by ML-weighted importance)")
+    report_lines.append("-" * 60)
+
+    for i, (_, row) in enumerate(gaps_positive.iterrows()):
+        level_name = get_level_label(row['student_score'])
+        report_lines.append(
+            f"\n{i+1}. {row['competency_id']}: {row['competency']}\n"
+            f"   Domain: {row['aacn_domain_name']}\n"
+            f"   Your Score: {int(row['student_score'])} ({level_name})\n"
+            f"   NP Benchmark: {row['benchmark']:.3f}\n"
+            f"   Gap: {row['gap']:.3f}\n"
+            f"   ML Importance: {row['ml_importance']:.4f}\n"
+            f"   Weighted Priority: {row['weighted_gap']:.3f}"
+        )
+
+    report_lines.append("")
+    report_lines.append("-" * 60)
+    report_lines.append("DOMAIN SUMMARY")
+    report_lines.append("-" * 60)
+    for d_num in sorted(AACN_DOMAIN_NAMES.keys(), key=int):
+        d_name = AACN_DOMAIN_NAMES[d_num]
+        d_comps = gaps_df[gaps_df['aacn_domain'] == d_num]
+        if d_comps.empty:
+            continue
+        d_mean = d_comps['student_score'].mean()
+        report_lines.append(f"\nDomain {d_num}: {d_name} (Avg: {d_mean:.1f})")
+        for _, row in d_comps.iterrows():
+            level = get_level_label(row['student_score'])
+            report_lines.append(
+                f"  {row['competency_id']}: Score {int(row['student_score'])} ({level})"
+            )
+
+    report_lines.append("")
+    report_lines.append("-" * 60)
+    report_lines.append(
+        "Data Source: O*NET 30.1 (December 2025), CC-BY 4.0 License.\n"
+        "National Center for O*NET Development.\n"
+        "U.S. Department of Labor, Employment and Training Administration.\n"
+        "Dashboard: Jacksonville University, DSIM 608 Capstone."
+    )
+
+    report_text = "\n".join(report_lines)
+    st.download_button(
+        "Download Full Report (Text)",
+        data=report_text,
+        file_name=f"competency_report_{datetime.now().strftime('%Y%m%d')}.txt",
+        mime="text/plain",
+    )
 
 
 # ── Page: ML Insights ─────────────────────────────────────────────
