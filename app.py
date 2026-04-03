@@ -695,10 +695,10 @@ def render_self_assessment(crosswalk):
                 )
 
         with exp_col2:
-            st.markdown("**Submit to Instructor**")
+            st.markdown("**Submit My Assessment**")
             st.markdown(
-                "Enter your name and click Submit to send your assessment "
-                "directly to your instructor's records."
+                "Enter your name and click Submit to save your assessment "
+                "to the program's records for tracking your development."
             )
             student_name = st.text_input("Your Name (required for submission)")
             if student_name and 'crosswalk' in st.session_state:
@@ -731,8 +731,7 @@ def render_self_assessment(crosswalk):
                             resp = requests.post(SHEETS_URL, json=payload, timeout=10)
                             if resp.status_code == 200:
                                 st.success(
-                                    f"Assessment submitted successfully for {student_name}. "
-                                    f"Your instructor will see your results."
+                                    f"Assessment submitted successfully for {student_name}."
                                 )
                             else:
                                 st.error("Submission failed. Please download the CSV instead.")
@@ -743,7 +742,7 @@ def render_self_assessment(crosswalk):
                 # Always offer CSV download as fallback
                 csv_summary = summary_df.to_csv(index=False)
                 st.download_button(
-                    "Download Instructor Summary (CSV)",
+                    "Download Summary (CSV)",
                     data=csv_summary,
                     file_name=f"instructor_summary_{student_name.replace(' ','_')}_{datetime.now().strftime('%Y%m%d')}.csv",
                     mime="text/csv"
