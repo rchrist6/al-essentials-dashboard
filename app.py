@@ -1542,6 +1542,80 @@ Employment and Training Administration.
 
 
 # ── Page: Priority & Simulation (Week 6) ─────────────────────────
+# O*NET domain name map between lowercase (DB) and Capitalized (crosswalk JSON)
+_ONET_DOMAIN_CAP = {
+    'knowledge': 'Knowledge', 'skills': 'Skills', 'abilities': 'Abilities',
+    'work_activities': 'Work Activities', 'work_styles': 'Work Styles',
+    'work_context': 'Work Context',
+}
+
+
+@st.cache_data
+def _aacn_domain_scores_from_occupation(_df, _crosswalk, soc_code):
+    """Compute AACN domain scores (1-10) for a single occupation.
+
+    For each AACN competency, average the scores of the O*NET dimensions
+    listed in the crosswalk. Then average competencies within each AACN domain.
+    Returns dict: {domain_num (str): score}.
+    """
+    occ = _df[_df.soc_code == soc_code]
+    # dim scores lookup: (O*NET domain cap, element_name) -> score
+    dim_scores = {}
+    for _, row in occ.iterrows():
+        key = (_ONET_DOMAIN_CAP.get(row['domain'], row['domain']), row['element_name'])
+        dim_scores[key] = row['normalized_value']
+
+    from collections import defaultdict
+    comp_scores = {}
+    for comp_id, entry in _crosswalk.items():
+        od = entry.get('onet_dimensions', {}) or {}
+        vals = []
+        for onet_dom, dim_list in od.items():
+            for dim in (dim_list or []):
+                v = dim_scores.get((onet_dom, dim))
+                if v is not None:
+                    vals.append(v)
+        if vals:
+            comp_scores[comp_id] = float(np.mean(vals))
+
+    # Aggregate to AACN domain
+    by_dom = defaultdict(list)
+    for comp_id, score in comp_scores.items():
+        dom_num = comp_id.split('.')[0]
+        by_dom[dom_num].append(score)
+    return {d: float(np.mean(scores)) for d, scores in by_dom.items()}
+
+
+@st.cache_data
+def _simulate_aacn_cohort(_df, _crosswalk, n_students=50, seed=42):
+    """Simulate N DNP students taking the self-assessment.
+
+    Each simulated student is drawn as a mix of RN baseline and NP target
+    competency with a random progress factor (Beta(2, 3), mean ~0.4) plus noise.
+    This represents a realistic DNP cohort mid-program: some closer to RN
+    (entering), some closer to NP (near graduation).
+
+    Returns DataFrame with columns: student_id, aacn_domain, score.
+    """
+    rn_aacn = _aacn_domain_scores_from_occupation(_df, _crosswalk, '29-1141.00')
+    np_aacn = _aacn_domain_scores_from_occupation(_df, _crosswalk, '29-1171.00')
+
+    rng = np.random.default_rng(seed)
+    rows = []
+    for sid in range(n_students):
+        progress = float(rng.beta(2, 3))  # 0 = pure RN, 1 = pure NP; mean ~0.4
+        for d in sorted(rn_aacn.keys(), key=int):
+            baseline = rn_aacn[d]
+            target = np_aacn.get(d, baseline)
+            expected = baseline + (target - baseline) * progress
+            noise = rng.normal(0, 0.05)
+            score = float(np.clip(expected + noise, 0.0, 1.0))
+            rows.append({'student_id': sid, 'aacn_domain': d, 'score': score})
+    cohort = pd.DataFrame(rows)
+    # also return the RN and NP anchors for overlay
+    return cohort, rn_aacn, np_aacn
+
+
 @st.cache_data
 def _compute_priority_table(_df, _feat_imp):
     """Join NP-vs-RN dimension gaps with RF importance; rank by composite z-score."""
@@ -1632,19 +1706,17 @@ def _run_simulation(_df, seed=42, n_boot=10000, n_sim=5000):
 def render_priority_simulation(df, feat_imp):
     """Week 6 Priority & Simulation page.
 
-    Six new visualizations derived from Week 4 RF importance and Week 5
-    bootstrap + Monte Carlo outputs:
-      1. Gap Priority Matrix (scatter)
-      2. Personalized Learning Roadmap (top 12)
-      3. Priority 3D scatter (135 positive-gap dimensions)
-      4. Top 12 Sankey flow to O*NET domains
-      5. Bootstrap distribution violins (10,000 resamples per domain)
-      6. Learning Pathway scenario comparison (Monte Carlo, 5,000 sims each)
+    Seven analytical views framed around AACN 2021 Advanced-Level Essentials.
+    O*NET 30.1 workforce data is the baseline reference: the Registered Nurse
+    (RN) profile represents incoming DNP students, and the Nurse Practitioner
+    (NP) profile represents the target competency level post-DNP.
     """
     st.title("Priority & Simulation")
     st.markdown(
-        "**Week 6 Analytics.** Six visualizations that join Week 4 Random Forest "
-        "feature importance with Week 5 bootstrap simulation outputs. "
+        "**Week 6 Faculty Analytics.** Seven views aligned with the "
+        "**AACN 2021 Advanced-Level Essentials** (10 domains, 45 competencies). "
+        "O*NET 30.1 workforce data provides the baseline: RN = entering DNP "
+        "student, NP = expected post-DNP advanced practice competency level. "
         "All stochastic steps use `seed = 42` for reproducibility."
     )
 
@@ -1652,6 +1724,10 @@ def render_priority_simulation(df, feat_imp):
         'knowledge': '#264653', 'skills': '#2a9d8f', 'abilities': '#e9c46a',
         'work_activities': '#f4a261', 'work_styles': '#e76f51', 'work_context': '#606c38',
     }
+    aacn_palette = [
+        '#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51',
+        '#606c38', '#1b4965', '#bc6c25', '#9d6b53', '#457b9d',
+    ]
     scenario_colors = {
         'Balanced': '#1B2A4A', 'Knowledge-Heavy': '#2a9d8f',
         'Clinical-Focus': '#e07a5f', 'Leadership-Focus': '#e9c46a',
@@ -1665,14 +1741,106 @@ def render_priority_simulation(df, feat_imp):
 
     section = st.radio(
         "Section",
-        ["Gap Priority Matrix",
+        ["Cohort Overview (AACN)",
+         "Gap Priority Matrix",
          "Personalized Learning Roadmap",
          "Priority 3D Space",
-         "Top 12 Sankey Flow",
+         "Top 12 Priority Flow",
          "Bootstrap Distributions",
          "Learning Pathway Simulation"],
         horizontal=True,
     )
+
+    # 0. Cohort Overview (AACN) ──────────────────────────────────
+    if section == "Cohort Overview (AACN)":
+        st.subheader("Cohort Competency Overview, by AACN Domain")
+        st.caption(
+            "Simulated DNP cohort of 50 students taking the self-assessment. "
+            "Scores are modeled as a mix of RN baseline (entering) and NP target "
+            "(exiting), with a random progress factor and small noise. "
+            "This is the faculty view that informs program improvement decisions."
+        )
+
+        crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+        n_students = st.slider("Simulated cohort size", 20, 200, 50, step=10,
+                                 help="How many students taking the self-assessment to simulate")
+
+        cohort, rn_aacn, np_aacn = _simulate_aacn_cohort(
+            df, crosswalk, n_students=n_students, seed=42)
+
+        # Order domains by AACN number and add label
+        dom_order = sorted(rn_aacn.keys(), key=int)
+        dom_labels = {d: f"{d}. {AACN_DOMAIN_NAMES.get(d, 'Domain ' + d)}" for d in dom_order}
+        cohort['label'] = cohort['aacn_domain'].map(dom_labels)
+
+        # Box plot per AACN domain
+        fig = go.Figure()
+        for i, d in enumerate(dom_order):
+            sub = cohort[cohort.aacn_domain == d]
+            fig.add_trace(go.Box(
+                y=sub['score'], name=dom_labels[d],
+                boxpoints='outliers', fillcolor=aacn_palette[i % len(aacn_palette)],
+                marker=dict(color=aacn_palette[i % len(aacn_palette)], size=4),
+                line=dict(color='#1B2A4A'),
+                hovertemplate=(f"<b>Domain {d}</b><br>"
+                               f"Score: %{{y:.3f}}<extra></extra>"),
+            ))
+        # overlay RN baseline (dashed) and NP target (solid) per domain as markers
+        for i, d in enumerate(dom_order):
+            fig.add_trace(go.Scatter(
+                x=[dom_labels[d]], y=[rn_aacn[d]],
+                mode='markers', name='RN baseline' if i == 0 else None,
+                marker=dict(symbol='line-ew-open', size=22,
+                            color='#888', line=dict(width=3)),
+                showlegend=(i == 0),
+                hovertemplate=f"RN baseline domain {d}: {rn_aacn[d]:.3f}<extra></extra>",
+            ))
+            fig.add_trace(go.Scatter(
+                x=[dom_labels[d]], y=[np_aacn[d]],
+                mode='markers', name='NP target' if i == 0 else None,
+                marker=dict(symbol='star', size=14,
+                            color='#e07a5f', line=dict(color='white', width=1)),
+                showlegend=(i == 0),
+                hovertemplate=f"NP target domain {d}: {np_aacn[d]:.3f}<extra></extra>",
+            ))
+        fig.update_layout(
+            height=620, template='plotly_white',
+            yaxis=dict(title='Competency Score (0 to 1)', range=[0, 1]),
+            xaxis=dict(tickangle=-25, tickfont=dict(size=10)),
+            margin=dict(b=180),
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Summary stats
+        st.markdown("#### Program Improvement Insights")
+        summary_rows = []
+        for d in dom_order:
+            sub = cohort[cohort.aacn_domain == d]['score']
+            gap_to_np = np_aacn[d] - sub.mean()
+            summary_rows.append({
+                'AACN Domain': dom_labels[d],
+                'Cohort Mean': f"{sub.mean():.3f}",
+                'Cohort SD': f"{sub.std():.3f}",
+                'NP Target': f"{np_aacn[d]:.3f}",
+                'Gap to NP': f"{gap_to_np:+.3f}",
+                'Students below 0.5': int((sub < 0.5).sum()),
+            })
+        sum_df = pd.DataFrame(summary_rows)
+        # Sort by gap (largest first)
+        sum_df['_sort'] = sum_df['Gap to NP'].str.replace('+', '').astype(float)
+        sum_df = sum_df.sort_values('_sort', ascending=False).drop(columns=['_sort'])
+        st.dataframe(sum_df.reset_index(drop=True), use_container_width=True, hide_index=True)
+
+        # Top callout
+        gaps = {d: np_aacn[d] - cohort[cohort.aacn_domain == d]['score'].mean()
+                for d in dom_order}
+        top_gap_d = max(gaps, key=gaps.get)
+        st.success(
+            f"**Program improvement priority:** Domain {top_gap_d}, "
+            f"{AACN_DOMAIN_NAMES[top_gap_d]}, has the largest cohort gap to NP "
+            f"({gaps[top_gap_d]:+.3f}). This is where curriculum reinforcement "
+            "would have the highest return on cohort preparation."
+        )
 
     # 1. Gap Priority Matrix
     if section == "Gap Priority Matrix":
@@ -1752,37 +1920,61 @@ def render_priority_simulation(df, feat_imp):
                        zaxis_title='Composite Priority'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # 4. Sankey Flow
-    elif section == "Top 12 Sankey Flow":
-        st.subheader("Top 12 Priority Dimensions Flow to O*NET Domain")
-        top12 = pos.nlargest(12, 'priority')
-        dim_nodes = list(top12['dimension'])
-        dom_nodes = [DOMAIN_LABELS[d] for d in DOMAIN_ORDER]
-        nodes = dim_nodes + dom_nodes
-        node_idx = {n: i for i, n in enumerate(nodes)}
+    # 4. Priority Flow (improved Sankey) ────────────────────────
+    elif section == "Top 12 Priority Flow":
+        st.subheader("Top 12 Priority Competencies, Flow to O*NET Domain")
+        st.caption(
+            "Where the top 12 priority workforce competencies sit within the "
+            "six O*NET domains. Link width = composite priority score (z-gap + z-importance)."
+        )
+        top12 = pos.nlargest(12, 'priority').copy()
 
-        def hex_to_rgba(hx, a=0.45):
+        def shorten(name, n=32):
+            return name if len(name) <= n else name[: n - 1] + '…'
+
+        dim_labels = [shorten(x) for x in top12['dimension']]
+        dom_labels = [DOMAIN_LABELS[d] for d in DOMAIN_ORDER]
+        nodes = dim_labels + dom_labels
+        dim_idx = {top12['dimension'].iloc[i]: i for i in range(len(top12))}
+        dom_idx = {DOMAIN_LABELS[d]: len(dim_labels) + i
+                    for i, d in enumerate(DOMAIN_ORDER)}
+
+        def hex_to_rgba(hx, a=0.55):
             hx = hx.lstrip('#')
             r, g, b = int(hx[0:2], 16), int(hx[2:4], 16), int(hx[4:6], 16)
             return f'rgba({r},{g},{b},{a})'
 
-        sources, targets, values, link_colors = [], [], [], []
+        sources, targets, values, link_colors, link_labels = [], [], [], [], []
         for _, row in top12.iterrows():
-            sources.append(node_idx[row['dimension']])
-            targets.append(node_idx[DOMAIN_LABELS[row['domain']]])
+            sources.append(dim_idx[row['dimension']])
+            targets.append(dom_idx[DOMAIN_LABELS[row['domain']]])
             values.append(float(row['priority']))
             link_colors.append(hex_to_rgba(domain_colors[row['domain']]))
-        node_colors = (['#1B2A4A'] * len(dim_nodes)
+            link_labels.append(f"{row['dimension']}  (priority {row['priority']:.2f})")
+        node_colors = (['#1B2A4A'] * len(dim_labels)
                        + [domain_colors[d] for d in DOMAIN_ORDER])
         fig = go.Figure(data=[go.Sankey(
-            node=dict(label=nodes, color=node_colors, pad=15, thickness=18,
-                      line=dict(color='white', width=0.5)),
+            arrangement='snap',
+            node=dict(label=nodes, color=node_colors,
+                      pad=28, thickness=28,
+                      line=dict(color='white', width=1)),
             link=dict(source=sources, target=targets, value=values,
-                      color=link_colors),
+                      color=link_colors, label=link_labels,
+                      hovertemplate='%{label}<extra></extra>'),
         )])
-        fig.update_layout(height=560, font=dict(size=11))
+        fig.update_layout(
+            height=780,
+            font=dict(size=14, family='Calibri, Arial'),
+            margin=dict(l=10, r=10, t=10, b=10),
+        )
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("Link width = composite priority score.")
+
+        with st.expander("See the top 12 with full dimension names"):
+            disp = top12.copy()
+            disp['domain'] = disp['domain'].map(DOMAIN_LABELS)
+            disp = disp[['dimension', 'domain', 'gap', 'rf_importance', 'priority']]
+            disp.columns = ['Dimension (full name)', 'O*NET Domain', 'Gap', 'RF Importance', 'Priority']
+            st.dataframe(disp.reset_index(drop=True), use_container_width=True, hide_index=True)
 
     # 5. Bootstrap Distributions
     elif section == "Bootstrap Distributions":
