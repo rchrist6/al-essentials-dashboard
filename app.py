@@ -360,7 +360,7 @@ def main():
     page = st.sidebar.radio(
         "Go to",
         ["Home", "Self-Assessment", "Gap Analysis", "Learning Roadmap",
-         "My Report", "Faculty Analytics", "About"]
+         "My Report", "Faculty Analytics", "Priority & Simulation", "About"]
     )
 
     if page == "Home":
@@ -375,6 +375,8 @@ def main():
         render_my_report(crosswalk, np_benchmark, feat_imp, df)
     elif page == "Faculty Analytics":
         render_ml_insights(feat_imp, model_comp, clusters, df)
+    elif page == "Priority & Simulation":
+        render_priority_simulation(df, feat_imp)
     elif page == "About":
         render_about()
 
@@ -1537,6 +1539,344 @@ Employment and Training Administration.
 
 **Instructor**: Dr. Zachary Davis, Jacksonville University
     """)
+
+
+# ── Page: Priority & Simulation (Week 6) ─────────────────────────
+@st.cache_data
+def _compute_priority_table(_df, _feat_imp):
+    """Join NP-vs-RN dimension gaps with RF importance; rank by composite z-score."""
+    rn = (_df[_df.soc_code == '29-1141.00']
+          .groupby(['domain', 'element_name'])['normalized_value'].mean())
+    npp = (_df[_df.soc_code == '29-1171.00']
+           .groupby(['domain', 'element_name'])['normalized_value'].mean())
+    gaps = (npp - rn).dropna().reset_index()
+    gaps.columns = ['domain', 'dimension', 'gap']
+    # feat_imp has columns: domain, dimension, importance (or rf_importance)
+    imp = _feat_imp.copy()
+    if 'rf_importance' not in imp.columns and 'importance' in imp.columns:
+        imp = imp.rename(columns={'importance': 'rf_importance'})
+    merged = gaps.merge(
+        imp[['domain', 'dimension', 'rf_importance']],
+        on=['domain', 'dimension'], how='inner',
+    )
+    pos = merged[merged.gap > 0].copy()
+    pos['z_gap'] = (pos['gap'] - pos['gap'].mean()) / pos['gap'].std()
+    pos['z_imp'] = (pos['rf_importance'] - pos['rf_importance'].mean()) / pos['rf_importance'].std()
+    pos['priority'] = pos['z_gap'] + pos['z_imp']
+    return pos
+
+
+@st.cache_data
+def _run_simulation(_df, seed=42, n_boot=10000, n_sim=5000):
+    """Re-run Week 5 simulation (bootstrap + pathway Monte Carlo), seed = 42."""
+    profiles = {}
+    for label, code in [('RN', '29-1141.00'), ('NP', '29-1171.00')]:
+        occ = _df[_df.soc_code == code]
+        p = {}
+        for dom in DOMAIN_ORDER:
+            vals = occ[occ.domain == dom]['normalized_value'].values
+            p[dom] = {'values': vals, 'mean': float(vals.mean())}
+        profiles[label] = p
+
+    np.random.seed(seed)
+
+    gap_results = {}
+    for dom in DOMAIN_ORDER:
+        rv = profiles['RN'][dom]['values']
+        nv = profiles['NP'][dom]['values']
+        obs = float(nv.mean() - rv.mean())
+        boot = np.empty(n_boot)
+        for i in range(n_boot):
+            r = np.random.choice(rv, len(rv), True)
+            n = np.random.choice(nv, len(nv), True)
+            boot[i] = n.mean() - r.mean()
+        ci_lo = float(np.percentile(boot, 2.5))
+        ci_hi = float(np.percentile(boot, 97.5))
+        gap_results[dom] = {
+            'obs': obs, 'boot': boot.tolist(),
+            'ci_lo': ci_lo, 'ci_hi': ci_hi,
+            'sig': not (ci_lo <= 0 <= ci_hi),
+        }
+
+    scenario_weights = {
+        'Balanced': {d: 1.0 for d in DOMAIN_ORDER},
+        'Knowledge-Heavy': {'knowledge': 2.5, 'skills': 1.0, 'abilities': 0.8,
+                            'work_activities': 0.8, 'work_styles': 0.5, 'work_context': 0.4},
+        'Clinical-Focus': {'knowledge': 1.5, 'skills': 2.0, 'abilities': 1.5,
+                           'work_activities': 2.0, 'work_styles': 0.5, 'work_context': 0.5},
+        'Leadership-Focus': {'knowledge': 1.0, 'skills': 1.5, 'abilities': 0.8,
+                             'work_activities': 1.5, 'work_styles': 1.5, 'work_context': 1.2},
+    }
+    pathway_results = {}
+    for name, w in scenario_weights.items():
+        tot = sum(w.values())
+        nw = {d: v / tot for d, v in w.items()}
+        sim = np.zeros((n_sim, len(DOMAIN_ORDER)))
+        for s in range(n_sim):
+            for di, dom in enumerate(DOMAIN_ORDER):
+                rv = profiles['RN'][dom]['values']
+                nv = profiles['NP'][dom]['values']
+                rb = np.random.choice(rv, len(rv), True).mean()
+                nb = np.random.choice(nv, len(nv), True).mean()
+                closure = nw[dom] * np.random.beta(3, 2)
+                sim[s, di] = rb + (nb - rb) * closure
+        probs = {d: float((sim[:, i] >= profiles['NP'][d]['mean'] * 0.9).mean())
+                 for i, d in enumerate(DOMAIN_ORDER)}
+        pathway_results[name] = {
+            'weights': nw, 'probs': probs,
+            'overall': float(np.mean(list(probs.values()))),
+        }
+    return gap_results, pathway_results
+
+
+def render_priority_simulation(df, feat_imp):
+    """Week 6 Priority & Simulation page.
+
+    Six new visualizations derived from Week 4 RF importance and Week 5
+    bootstrap + Monte Carlo outputs:
+      1. Gap Priority Matrix (scatter)
+      2. Personalized Learning Roadmap (top 12)
+      3. Priority 3D scatter (135 positive-gap dimensions)
+      4. Top 12 Sankey flow to O*NET domains
+      5. Bootstrap distribution violins (10,000 resamples per domain)
+      6. Learning Pathway scenario comparison (Monte Carlo, 5,000 sims each)
+    """
+    st.title("Priority & Simulation")
+    st.markdown(
+        "**Week 6 Analytics.** Six visualizations that join Week 4 Random Forest "
+        "feature importance with Week 5 bootstrap simulation outputs. "
+        "All stochastic steps use `seed = 42` for reproducibility."
+    )
+
+    domain_colors = {
+        'knowledge': '#264653', 'skills': '#2a9d8f', 'abilities': '#e9c46a',
+        'work_activities': '#f4a261', 'work_styles': '#e76f51', 'work_context': '#606c38',
+    }
+    scenario_colors = {
+        'Balanced': '#1B2A4A', 'Knowledge-Heavy': '#2a9d8f',
+        'Clinical-Focus': '#e07a5f', 'Leadership-Focus': '#e9c46a',
+    }
+
+    if feat_imp is None or feat_imp.empty:
+        st.warning("Feature importance data not available. Cannot render priority views.")
+        return
+
+    pos = _compute_priority_table(df, feat_imp)
+
+    section = st.radio(
+        "Section",
+        ["Gap Priority Matrix",
+         "Personalized Learning Roadmap",
+         "Priority 3D Space",
+         "Top 12 Sankey Flow",
+         "Bootstrap Distributions",
+         "Learning Pathway Simulation"],
+        horizontal=True,
+    )
+
+    # 1. Gap Priority Matrix
+    if section == "Gap Priority Matrix":
+        st.subheader("Gap Priority Matrix")
+        st.caption(
+            f"All {len(pos)} positive-gap dimensions, colored by O*NET domain. "
+            "X = RF importance (workforce signal). Y = gap (developmental need). "
+            "Upper-right quadrant = high-priority curriculum targets."
+        )
+        fig = go.Figure()
+        for dom in DOMAIN_ORDER:
+            sub = pos[pos.domain == dom]
+            fig.add_trace(go.Scatter(
+                x=sub['rf_importance'], y=sub['gap'],
+                mode='markers', name=DOMAIN_LABELS[dom],
+                marker=dict(size=10, color=domain_colors[dom], opacity=0.78,
+                            line=dict(color='white', width=0.7)),
+                text=sub['dimension'],
+                hovertemplate="<b>%{text}</b><br>Gap: %{y:+.3f}<br>RF: %{x:.4f}<extra></extra>",
+            ))
+        median_imp = pos['rf_importance'].median()
+        fig.add_vline(x=median_imp, line_dash='dash', line_color='gray')
+        fig.update_layout(
+            height=560, template='plotly_white',
+            xaxis_title='Random Forest Feature Importance',
+            yaxis_title='NP - RN Gap')
+        st.plotly_chart(fig, use_container_width=True)
+
+    # 2. Personalized Learning Roadmap
+    elif section == "Personalized Learning Roadmap":
+        st.subheader("Personalized Learning Roadmap, Top 12")
+        top12 = pos.nlargest(12, 'priority').reset_index(drop=True)
+        top12['rank'] = top12.index + 1
+        disp = top12.iloc[::-1].reset_index(drop=True)
+        fig = go.Figure(go.Bar(
+            x=disp['priority'], y=disp['dimension'],
+            orientation='h',
+            marker_color=[domain_colors[d] for d in disp['domain']],
+            text=[f"gap {g:+.3f}  |  RF {imp:.4f}"
+                  for g, imp in zip(disp['gap'], disp['rf_importance'])],
+            textposition='outside',
+        ))
+        fig.update_layout(
+            height=600, template='plotly_white',
+            xaxis_title='Composite Priority (z-gap + z-importance)',
+            yaxis=dict(tickfont=dict(size=11)))
+        st.plotly_chart(fig, use_container_width=True)
+        st.info(
+            f"**Top priority dimension:** {top12.iloc[0]['dimension']} "
+            f"({DOMAIN_LABELS[top12.iloc[0]['domain']]}). "
+            "Higher bars = larger development impact from focused effort."
+        )
+
+    # 3. Priority 3D Space
+    elif section == "Priority 3D Space":
+        st.subheader("Priority 3D Space")
+        st.caption(
+            f"{len(pos)} positive-gap dimensions plotted in 3D. "
+            "Rotate with the mouse. Hover for dimension name."
+        )
+        fig = go.Figure()
+        for dom in DOMAIN_ORDER:
+            sub = pos[pos.domain == dom]
+            fig.add_trace(go.Scatter3d(
+                x=sub['gap'], y=sub['rf_importance'], z=sub['priority'],
+                mode='markers', name=DOMAIN_LABELS[dom],
+                marker=dict(size=5, color=domain_colors[dom], opacity=0.85,
+                            line=dict(color='white', width=0.4)),
+                text=sub['dimension'],
+                hovertemplate="<b>%{text}</b><br>Gap: %{x:+.3f}<br>"
+                              "RF: %{y:.4f}<br>Priority: %{z:.3f}<extra></extra>",
+            ))
+        fig.update_layout(
+            height=660,
+            scene=dict(xaxis_title='NP - RN Gap',
+                       yaxis_title='RF Importance',
+                       zaxis_title='Composite Priority'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    # 4. Sankey Flow
+    elif section == "Top 12 Sankey Flow":
+        st.subheader("Top 12 Priority Dimensions Flow to O*NET Domain")
+        top12 = pos.nlargest(12, 'priority')
+        dim_nodes = list(top12['dimension'])
+        dom_nodes = [DOMAIN_LABELS[d] for d in DOMAIN_ORDER]
+        nodes = dim_nodes + dom_nodes
+        node_idx = {n: i for i, n in enumerate(nodes)}
+
+        def hex_to_rgba(hx, a=0.45):
+            hx = hx.lstrip('#')
+            r, g, b = int(hx[0:2], 16), int(hx[2:4], 16), int(hx[4:6], 16)
+            return f'rgba({r},{g},{b},{a})'
+
+        sources, targets, values, link_colors = [], [], [], []
+        for _, row in top12.iterrows():
+            sources.append(node_idx[row['dimension']])
+            targets.append(node_idx[DOMAIN_LABELS[row['domain']]])
+            values.append(float(row['priority']))
+            link_colors.append(hex_to_rgba(domain_colors[row['domain']]))
+        node_colors = (['#1B2A4A'] * len(dim_nodes)
+                       + [domain_colors[d] for d in DOMAIN_ORDER])
+        fig = go.Figure(data=[go.Sankey(
+            node=dict(label=nodes, color=node_colors, pad=15, thickness=18,
+                      line=dict(color='white', width=0.5)),
+            link=dict(source=sources, target=targets, value=values,
+                      color=link_colors),
+        )])
+        fig.update_layout(height=560, font=dict(size=11))
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("Link width = composite priority score.")
+
+    # 5. Bootstrap Distributions
+    elif section == "Bootstrap Distributions":
+        st.subheader("Bootstrap Sampling Distributions (NP vs RN)")
+        with st.spinner("Running 10,000 bootstrap resamples per domain..."):
+            gap_results, _ = _run_simulation(df, seed=42, n_boot=10000, n_sim=5000)
+        fig = go.Figure()
+        for dom in DOMAIN_ORDER:
+            d = gap_results[dom]
+            fig.add_trace(go.Violin(
+                y=d['boot'], name=DOMAIN_LABELS[dom],
+                box_visible=True, meanline_visible=True,
+                fillcolor=domain_colors[dom], opacity=0.78,
+                line_color='#1B2A4A',
+                hovertemplate=(f"<b>{DOMAIN_LABELS[dom]}</b><br>"
+                               f"Observed: {d['obs']:+.4f}<br>"
+                               f"95% CI: [{d['ci_lo']:+.4f}, {d['ci_hi']:+.4f}]<br>"
+                               f"Sig: {'Yes' if d['sig'] else 'No'}<extra></extra>"),
+            ))
+        fig.update_layout(height=500, template='plotly_white',
+                          yaxis_title='Gap (NP minus RN)', showlegend=False)
+        fig.add_hline(y=0, line_dash='dot', line_color='gray')
+        st.plotly_chart(fig, use_container_width=True)
+        st.info(
+            "**Knowledge** is the only domain with a significant NP-vs-RN gap "
+            "(observed +0.113, 95% CI [+0.007, +0.220]). The other five CIs cross zero."
+        )
+
+    # 6. Learning Pathway Simulation
+    elif section == "Learning Pathway Simulation":
+        st.subheader("Learning Pathway Simulation")
+        with st.spinner("Running 20,000 pathway Monte Carlo simulations..."):
+            _, pathway_results = _run_simulation(df, seed=42, n_boot=10000, n_sim=5000)
+
+        scenario = st.radio(
+            "Pathway scenario",
+            list(pathway_results.keys()), horizontal=True, index=2,  # Clinical-Focus default
+        )
+        probs = pathway_results[scenario]['probs']
+        weights = pathway_results[scenario]['weights']
+        overall = pathway_results[scenario]['overall']
+
+        c1, c2 = st.columns([2, 1])
+        with c1:
+            st.markdown(f"#### Per-domain achievement probability, {scenario}")
+            fig = go.Figure(go.Bar(
+                x=[DOMAIN_LABELS[d] for d in DOMAIN_ORDER],
+                y=[probs[d] for d in DOMAIN_ORDER],
+                marker_color=[domain_colors[d] for d in DOMAIN_ORDER],
+                text=[f"{probs[d]:.0%}" for d in DOMAIN_ORDER],
+                textposition='outside',
+            ))
+            fig.add_hline(y=0.8, line_dash='dash', line_color='#e07a5f',
+                          annotation_text="80% goal")
+            fig.update_layout(
+                height=420, template='plotly_white', showlegend=False,
+                yaxis=dict(tickformat='.0%', range=[0, 1.15]))
+            st.plotly_chart(fig, use_container_width=True)
+
+        with c2:
+            st.metric(
+                f"Overall P(reach 90% NP), {scenario}", f"{overall:.1%}"
+            )
+            st.markdown("**Effort breakdown:**")
+            fig_w = go.Figure(go.Pie(
+                labels=[DOMAIN_LABELS[d] for d in DOMAIN_ORDER],
+                values=[weights[d] for d in DOMAIN_ORDER],
+                marker=dict(colors=[domain_colors[d] for d in DOMAIN_ORDER]),
+                hole=0.45,
+                textinfo='label+percent', textfont=dict(size=9),
+            ))
+            fig_w.update_layout(height=340, showlegend=False,
+                                margin=dict(t=10, b=10, l=10, r=10))
+            st.plotly_chart(fig_w, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### Compare all four pathways")
+        names = list(pathway_results.keys())
+        overalls = [pathway_results[n]['overall'] for n in names]
+        order = np.argsort(overalls)[::-1]
+        fig_race = go.Figure(go.Bar(
+            x=[names[i] for i in order],
+            y=[overalls[i] for i in order],
+            marker_color=[scenario_colors[names[i]] for i in order],
+            text=[f"{overalls[i]:.1%}" for i in order], textposition='outside',
+        ))
+        fig_race.update_layout(height=380, template='plotly_white',
+                               yaxis=dict(tickformat='.0%', range=[0.6, 0.75]))
+        st.plotly_chart(fig_race, use_container_width=True)
+        st.caption(
+            "Clinical-Focus leads overall at 70.3%. Margin over Balanced is narrow "
+            "(0.9 percentage points). The meaningful differences are at the domain level, "
+            "not overall. 5,000 Monte Carlo simulations per scenario, seed = 42."
+        )
 
 
 if __name__ == "__main__":
