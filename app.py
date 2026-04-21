@@ -1755,15 +1755,20 @@ def render_priority_simulation(df, feat_imp):
     if section == "Cohort Overview (AACN)":
         st.subheader("Cohort Competency Overview, by AACN Domain")
         st.caption(
-            "Simulated DNP cohort of 50 students taking the self-assessment. "
-            "Scores are modeled as a mix of RN baseline (entering) and NP target "
-            "(exiting), with a random progress factor and small noise. "
+            "Simulated DNP cohort taking the self-assessment. "
+            "Scores are modeled as a mix of RN baseline (entering DNP) and NP target "
+            "(post-DNP), with a random progress factor and small noise. "
             "This is the faculty view that informs program improvement decisions."
         )
 
         crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
-        n_students = st.slider("Simulated cohort size", 20, 200, 50, step=10,
-                                 help="How many students taking the self-assessment to simulate")
+
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            n_students = st.slider("Simulated cohort size", 20, 200, 50, step=10,
+                                     help="How many students taking the self-assessment to simulate")
+        with c2:
+            st.metric("Active cohort N", n_students)
 
         cohort, rn_aacn, np_aacn = _simulate_aacn_cohort(
             df, crosswalk, n_students=n_students, seed=42)
@@ -1773,23 +1778,28 @@ def render_priority_simulation(df, feat_imp):
         dom_labels = {d: f"{d}. {AACN_DOMAIN_NAMES.get(d, 'Domain ' + d)}" for d in dom_order}
         cohort['label'] = cohort['aacn_domain'].map(dom_labels)
 
-        # Box plot per AACN domain
+        # Box plot per AACN domain, with all student scores shown as jittered points
+        # so visibly more dots appear as cohort size grows.
         fig = go.Figure()
         for i, d in enumerate(dom_order):
             sub = cohort[cohort.aacn_domain == d]
             fig.add_trace(go.Box(
                 y=sub['score'], name=dom_labels[d],
-                boxpoints='outliers', fillcolor=aacn_palette[i % len(aacn_palette)],
-                marker=dict(color=aacn_palette[i % len(aacn_palette)], size=4),
+                boxpoints='all',          # show EVERY student as a point
+                jitter=0.45, pointpos=0,
+                fillcolor=aacn_palette[i % len(aacn_palette)],
+                marker=dict(color=aacn_palette[i % len(aacn_palette)],
+                            size=4, opacity=0.55,
+                            line=dict(color='white', width=0.3)),
                 line=dict(color='#1B2A4A'),
                 hovertemplate=(f"<b>Domain {d}</b><br>"
                                f"Score: %{{y:.3f}}<extra></extra>"),
             ))
-        # overlay RN baseline (dashed) and NP target (solid) per domain as markers
+        # overlay RN baseline (gray dash) and NP target (coral star)
         for i, d in enumerate(dom_order):
             fig.add_trace(go.Scatter(
                 x=[dom_labels[d]], y=[rn_aacn[d]],
-                mode='markers', name='RN baseline' if i == 0 else None,
+                mode='markers', name='RN baseline (entering)' if i == 0 else None,
                 marker=dict(symbol='line-ew-open', size=22,
                             color='#888', line=dict(width=3)),
                 showlegend=(i == 0),
@@ -1797,33 +1807,40 @@ def render_priority_simulation(df, feat_imp):
             ))
             fig.add_trace(go.Scatter(
                 x=[dom_labels[d]], y=[np_aacn[d]],
-                mode='markers', name='NP target' if i == 0 else None,
+                mode='markers', name='NP target (post-DNP)' if i == 0 else None,
                 marker=dict(symbol='star', size=14,
                             color='#e07a5f', line=dict(color='white', width=1)),
                 showlegend=(i == 0),
                 hovertemplate=f"NP target domain {d}: {np_aacn[d]:.3f}<extra></extra>",
             ))
         fig.update_layout(
-            height=620, template='plotly_white',
+            height=640, template='plotly_white',
             yaxis=dict(title='Competency Score (0 to 1)', range=[0, 1]),
             xaxis=dict(tickangle=-25, tickfont=dict(size=10)),
             margin=dict(b=180),
+            title=dict(
+                text=f"Simulated cohort, N = {n_students} students, "
+                     f"{n_students * len(dom_order)} total ratings",
+                font=dict(size=13, color='#1B2A4A')),
+            showlegend=True,
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        # Summary stats
+        # Summary stats with BOTH count and percentage
         st.markdown("#### Program Improvement Insights")
         summary_rows = []
         for d in dom_order:
             sub = cohort[cohort.aacn_domain == d]['score']
             gap_to_np = np_aacn[d] - sub.mean()
+            below_count = int((sub < 0.5).sum())
+            below_pct = below_count / len(sub) * 100 if len(sub) else 0
             summary_rows.append({
                 'AACN Domain': dom_labels[d],
                 'Cohort Mean': f"{sub.mean():.3f}",
                 'Cohort SD': f"{sub.std():.3f}",
                 'NP Target': f"{np_aacn[d]:.3f}",
                 'Gap to NP': f"{gap_to_np:+.3f}",
-                'Students below 0.5': int((sub < 0.5).sum()),
+                f'Below 0.5 (of N={n_students})': f"{below_count} ({below_pct:.0f}%)",
             })
         sum_df = pd.DataFrame(summary_rows)
         # Sort by gap (largest first)
@@ -1836,7 +1853,7 @@ def render_priority_simulation(df, feat_imp):
                 for d in dom_order}
         top_gap_d = max(gaps, key=gaps.get)
         st.success(
-            f"**Program improvement priority:** Domain {top_gap_d}, "
+            f"**Program improvement priority (N = {n_students}):** Domain {top_gap_d}, "
             f"{AACN_DOMAIN_NAMES[top_gap_d]}, has the largest cohort gap to NP "
             f"({gaps[top_gap_d]:+.3f}). This is where curriculum reinforcement "
             "would have the highest return on cohort preparation."
@@ -1920,61 +1937,63 @@ def render_priority_simulation(df, feat_imp):
                        zaxis_title='Composite Priority'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # 4. Priority Flow (improved Sankey) ────────────────────────
+    # 4. Priority Flow (horizontal grouped bar, domain-annotated) ─
     elif section == "Top 12 Priority Flow":
-        st.subheader("Top 12 Priority Competencies, Flow to O*NET Domain")
+        st.subheader("Top 12 Priority Competencies by O*NET Domain")
         st.caption(
-            "Where the top 12 priority workforce competencies sit within the "
-            "six O*NET domains. Link width = composite priority score (z-gap + z-importance)."
+            "Top 12 workforce competencies (largest composite priority) grouped by "
+            "O*NET domain. Bar length = composite priority score (z-gap + z-importance)."
         )
         top12 = pos.nlargest(12, 'priority').copy()
+        # sort by domain (in DOMAIN_ORDER), then by priority descending within domain
+        top12['domain_rank'] = top12['domain'].map({d: i for i, d in enumerate(DOMAIN_ORDER)})
+        top12 = top12.sort_values(['domain_rank', 'priority'],
+                                    ascending=[True, True]).reset_index(drop=True)
 
-        def shorten(name, n=32):
-            return name if len(name) <= n else name[: n - 1] + '…'
+        # Build y-axis labels as "Dimension  (Domain)" so domain is always visible
+        top12['display_label'] = [
+            f"{row['dimension']}  ({DOMAIN_LABELS[row['domain']]})"
+            for _, row in top12.iterrows()
+        ]
 
-        dim_labels = [shorten(x) for x in top12['dimension']]
-        dom_labels = [DOMAIN_LABELS[d] for d in DOMAIN_ORDER]
-        nodes = dim_labels + dom_labels
-        dim_idx = {top12['dimension'].iloc[i]: i for i in range(len(top12))}
-        dom_idx = {DOMAIN_LABELS[d]: len(dim_labels) + i
-                    for i, d in enumerate(DOMAIN_ORDER)}
-
-        def hex_to_rgba(hx, a=0.55):
-            hx = hx.lstrip('#')
-            r, g, b = int(hx[0:2], 16), int(hx[2:4], 16), int(hx[4:6], 16)
-            return f'rgba({r},{g},{b},{a})'
-
-        sources, targets, values, link_colors, link_labels = [], [], [], [], []
-        for _, row in top12.iterrows():
-            sources.append(dim_idx[row['dimension']])
-            targets.append(dom_idx[DOMAIN_LABELS[row['domain']]])
-            values.append(float(row['priority']))
-            link_colors.append(hex_to_rgba(domain_colors[row['domain']]))
-            link_labels.append(f"{row['dimension']}  (priority {row['priority']:.2f})")
-        node_colors = (['#1B2A4A'] * len(dim_labels)
-                       + [domain_colors[d] for d in DOMAIN_ORDER])
-        fig = go.Figure(data=[go.Sankey(
-            arrangement='snap',
-            node=dict(label=nodes, color=node_colors,
-                      pad=28, thickness=28,
-                      line=dict(color='white', width=1)),
-            link=dict(source=sources, target=targets, value=values,
-                      color=link_colors, label=link_labels,
-                      hovertemplate='%{label}<extra></extra>'),
-        )])
+        fig = go.Figure()
+        # One trace per domain for a clean legend
+        for dom in DOMAIN_ORDER:
+            sub = top12[top12.domain == dom]
+            if sub.empty:
+                continue
+            fig.add_trace(go.Bar(
+                y=sub['display_label'],
+                x=sub['priority'],
+                orientation='h',
+                name=DOMAIN_LABELS[dom],
+                marker=dict(color=domain_colors[dom], line=dict(color='white', width=1)),
+                text=[f"priority {p:.2f}  |  gap {g:+.3f}  |  RF {i:.4f}"
+                      for p, g, i in zip(sub['priority'], sub['gap'], sub['rf_importance'])],
+                textposition='outside',
+                hovertemplate=("<b>%{y}</b><br>"
+                               "Priority: %{x:.3f}<extra></extra>"),
+            ))
         fig.update_layout(
-            height=780,
-            font=dict(size=14, family='Calibri, Arial'),
-            margin=dict(l=10, r=10, t=10, b=10),
+            height=640, template='plotly_white',
+            barmode='stack',
+            xaxis=dict(title='Composite Priority (z-gap + z-importance)',
+                       range=[0, float(top12['priority'].max()) * 1.45]),
+            yaxis=dict(tickfont=dict(size=13, color='#1B2A4A')),
+            legend=dict(title='O*NET Domain', orientation='h',
+                         y=-0.14, x=0),
+            margin=dict(l=10, r=20, t=10, b=80),
+            font=dict(family='Calibri, Arial', size=13, color='#1B2A4A'),
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        with st.expander("See the top 12 with full dimension names"):
+        with st.expander("See the top 12 as a table"):
             disp = top12.copy()
             disp['domain'] = disp['domain'].map(DOMAIN_LABELS)
             disp = disp[['dimension', 'domain', 'gap', 'rf_importance', 'priority']]
-            disp.columns = ['Dimension (full name)', 'O*NET Domain', 'Gap', 'RF Importance', 'Priority']
-            st.dataframe(disp.reset_index(drop=True), use_container_width=True, hide_index=True)
+            disp.columns = ['Dimension', 'O*NET Domain', 'Gap', 'RF Importance', 'Priority']
+            disp = disp.sort_values('Priority', ascending=False).reset_index(drop=True)
+            st.dataframe(disp, use_container_width=True, hide_index=True)
 
     # 5. Bootstrap Distributions
     elif section == "Bootstrap Distributions":
