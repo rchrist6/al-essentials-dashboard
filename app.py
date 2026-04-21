@@ -386,7 +386,7 @@ def render_home(df, jz, clusters):
     st.title("AL Essentials Competency Self-Assessment Dashboard")
     st.markdown(
         "An interactive tool for DNP students to assess their competency "
-        "development across the **AACN 2021 Advanced-Level Essentials** "
+        "development across the **AACN 2026 Advanced-Level Essentials** "
         "and receive a personalized, data-driven learning roadmap."
     )
 
@@ -396,7 +396,7 @@ def render_home(df, jz, clusters):
     st.subheader("What Is This Tool?")
     st.markdown(
         "The AACN (American Association of Colleges of Nursing) published "
-        "the 2021 Essentials framework to define what every nursing graduate "
+        "the 2026 Essentials framework to define what every nursing graduate "
         "should know and be able to do. At the Advanced Level (DNP), there are "
         "**10 domains** and **45 competencies** that describe the full scope "
         "of practice for nurse practitioners, clinical nurse specialists, "
@@ -432,8 +432,8 @@ def render_home(df, jz, clusters):
               "tailored to each patient."),
         "3": ("Population Health",
               "Addressing health at the community and population level: "
-              "epidemiology, health equity, disaster preparedness, and "
-              "advocacy for health policy."),
+              "epidemiology, access to healthcare resources, disaster "
+              "preparedness, and advocacy for health policy."),
         "4": ("Scholarship for Nursing Practice",
               "Generating and applying evidence: conducting research, "
               "integrating best evidence, disseminating findings, and "
@@ -454,7 +454,7 @@ def render_home(df, jz, clusters):
         "9": ("Professionalism",
               "Embodying nursing values: ethical practice, accountability, "
               "professional identity, regulatory compliance, and commitment "
-              "to diversity, equity, and inclusion."),
+              "to access, connection, and engagement."),
         "10": ("Personal, Professional Development and Leadership",
                "Lifelong growth and leading others: self-reflection, "
                "mentorship, resilience, and developing leadership capacity "
@@ -551,7 +551,7 @@ def render_home(df, jz, clusters):
 def render_self_assessment(crosswalk):
     st.title("Competency Self-Assessment")
     st.markdown(
-        "Rate your current competency level for each of the 45 AACN 2021 "
+        "Rate your current competency level for each of the 45 AACN 2026 "
         "Advanced-Level Essential competencies. Choose your preferred "
         "rating framework below."
     )
@@ -1013,8 +1013,8 @@ def render_learning_roadmap(crosswalk, np_benchmark, feat_imp):
     # Learning activity mapping
     activity_map = {
         "1": ["Clinical case analysis", "Evidence-based practice projects", "Literature synthesis"],
-        "2": ["Standardized patient simulations", "Motivational interviewing practice", "Cultural competency workshops"],
-        "3": ["Community health assessment", "Epidemiology coursework", "Health equity projects"],
+        "2": ["Standardized patient simulations", "Motivational interviewing practice", "Cultural humility workshops"],
+        "3": ["Community health assessment", "Epidemiology coursework", "Access to care initiatives"],
         "4": ["Systematic review participation", "Quality improvement project", "Manuscript preparation"],
         "5": ["Root cause analysis exercises", "Patient safety simulations", "Quality metrics dashboards"],
         "6": ["Interprofessional team rounds", "Collaborative practice agreements", "Team-based care projects"],
@@ -1116,7 +1116,7 @@ def render_my_report(crosswalk, np_benchmark, feat_imp, df):
         "2": ["Standardized patient simulations", "Motivational interviewing practice",
               "Cultural humility workshops"],
         "3": ["Community health needs assessment", "Epidemiology coursework",
-              "Health equity initiative participation"],
+              "Access to care initiative participation"],
         "4": ["Systematic review participation", "Quality improvement project leadership",
               "Manuscript preparation and submission"],
         "5": ["Root cause analysis exercises", "Patient safety simulations",
@@ -1521,7 +1521,7 @@ This application was developed as part of the DSIM 608: Applied Managerial Analy
 capstone project at Jacksonville University.
 
 **Purpose**: Enable DNP students to self-assess competency levels across
-AACN 2021 Advanced-Level Essentials and receive ML-weighted, personalized
+AACN 2026 Advanced-Level Essentials and receive ML-weighted, personalized
 learning roadmaps based on O*NET 30.1 workforce data.
 
 **Methods**:
@@ -1706,7 +1706,7 @@ def _run_simulation(_df, seed=42, n_boot=10000, n_sim=5000):
 def render_priority_simulation(df, feat_imp):
     """Week 6 Priority & Simulation page.
 
-    Seven analytical views framed around AACN 2021 Advanced-Level Essentials.
+    Seven analytical views framed around AACN 2026 Advanced-Level Essentials.
     O*NET 30.1 workforce data is the baseline reference: the Registered Nurse
     (RN) profile represents incoming DNP students, and the Nurse Practitioner
     (NP) profile represents the target competency level post-DNP.
@@ -1714,7 +1714,7 @@ def render_priority_simulation(df, feat_imp):
     st.title("Priority & Simulation")
     st.markdown(
         "**Week 6 Faculty Analytics.** Seven views aligned with the "
-        "**AACN 2021 Advanced-Level Essentials** (10 domains, 45 competencies). "
+        "**AACN 2026 Advanced-Level Essentials** (10 domains, 45 competencies). "
         "O*NET 30.1 workforce data provides the baseline: RN = entering DNP "
         "student, NP = expected post-DNP advanced practice competency level. "
         "All stochastic steps use `seed = 42` for reproducibility."

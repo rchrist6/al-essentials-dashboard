@@ -1057,7 +1057,7 @@
     "notes": "Professional identity is nursing-specific, not well-represented in O*NET"
   },
   "9.6": {
-    "competency": "Integrate DEI as core to professional identity",
+    "competency": "Integrate access, connection, and engagement as core to professional identity",
     "onet_dimensions": {
       "Knowledge": [
         "Sociology and Anthropology",
@@ -1080,7 +1080,7 @@
       ]
     },
     "mapping_strength": "Weak",
-    "notes": "DEI concepts not explicitly measured in O*NET; social perceptiveness is loose proxy"
+    "notes": "Access, connection, and engagement concepts not explicitly measured in O*NET; social perceptiveness is a loose proxy"
   },
   "10.1": {
     "competency": "Demonstrate commitment to personal health and well-being",
