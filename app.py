@@ -2011,20 +2011,24 @@ def _create_faculty_aacn_pdf(comp_df, dom_df, actions_map, domain_names, cohort_
         "importance, rolled up from O*NET dimensions to AACN competencies and "
         "domains via the student-developed crosswalk."
     )
+    pdf.set_x(pdf.l_margin)
     pdf.multi_cell(0, 5, exec_txt)
     pdf.ln(3)
     if not dom_df.empty:
         top = dom_df.iloc[0]
         pdf.set_font("Helvetica", "B", 11)
+        pdf.set_x(pdf.l_margin)
         pdf.multi_cell(0, 6,
             f"Top-priority AACN Domain: {top['aacn_domain']}, {top['domain_name']}")
         pdf.set_font("Helvetica", "", 10)
+        pdf.set_x(pdf.l_margin)
         pdf.multi_cell(0, 5,
             f"Total priority burden: {top['total_priority']:.2f} across "
             f"{top['n_competencies']} competencies. Top driver: {top['top_competency']}.")
         pdf.ln(3)
     if cohort_n is not None:
         pdf.set_font("Helvetica", "I", 9)
+        pdf.set_x(pdf.l_margin)
         pdf.multi_cell(0, 4,
             f"Simulated cohort size for context charts: N = {cohort_n} students.")
 
@@ -2080,22 +2084,26 @@ def _create_faculty_aacn_pdf(comp_df, dom_df, actions_map, domain_names, cohort_
     pdf.set_font("Helvetica", "B", 13)
     pdf.cell(0, 8, "Recommended Faculty Actions by AACN Domain", ln=True)
     pdf.set_font("Helvetica", "I", 9)
+    pdf.set_x(pdf.l_margin)
     pdf.multi_cell(0, 4,
         "Concrete curriculum-committee actions tied to each AACN domain. "
         "Grouped by action type. Designed as input for CCNE program evaluation cycles.")
     pdf.ln(3)
 
     for dom_id in sorted(actions_map.keys(), key=int):
+        pdf.set_x(pdf.l_margin)
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_fill_color(230, 235, 240)
         pdf.cell(0, 6, f"Domain {dom_id}, {domain_names.get(dom_id, 'Domain ' + dom_id)}",
                  ln=True, fill=True)
         pdf.ln(1)
         for category, items in actions_map[dom_id].items():
+            pdf.set_x(pdf.l_margin)
             pdf.set_font("Helvetica", "B", 10)
             pdf.cell(0, 5, category, ln=True)
             pdf.set_font("Helvetica", "", 9)
             for it in items:
+                pdf.set_x(pdf.l_margin)
                 pdf.multi_cell(0, 4, f"- {it}")
             pdf.ln(0.5)
         pdf.ln(2)
