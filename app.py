@@ -1968,6 +1968,167 @@ def _compute_aacn_pathway_probs(_df, _crosswalk, scenario_name, seed=42, n_sim=3
     return probs
 
 
+def _build_faculty_actions_dataframe(actions_map, domain_names):
+    """Flatten FACULTY_ACTIONS_BY_DOMAIN into a long-form DataFrame for export."""
+    rows = []
+    for dom_id in sorted(actions_map.keys(), key=int):
+        for category, items in actions_map[dom_id].items():
+            for item in items:
+                rows.append({
+                    'AACN Domain': dom_id,
+                    'Domain Name': domain_names.get(dom_id, f'Domain {dom_id}'),
+                    'Category': category,
+                    'Recommended Action': item,
+                })
+    return pd.DataFrame(rows)
+
+
+def _create_faculty_aacn_pdf(comp_df, dom_df, actions_map, domain_names, cohort_n=None):
+    """Build a multi-page faculty report PDF with AACN priority tables and recommended actions."""
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=18)
+    pdf.add_page()
+
+    # --- Cover ----------------------------------------------------
+    pdf.set_font("Helvetica", "B", 18)
+    pdf.cell(0, 12, "AACN Priority Summary, Faculty Report", ln=True, align="C")
+    pdf.set_font("Helvetica", "", 11)
+    date_str = datetime.now().strftime("%B %d, %Y")
+    pdf.cell(0, 6, f"Generated {date_str}", ln=True, align="C")
+    pdf.cell(0, 6, "Jacksonville University, Keigwin School of Nursing",
+             ln=True, align="C")
+    pdf.cell(0, 6, "DSIM 608 Capstone, Roberta Christopher",
+             ln=True, align="C")
+    pdf.ln(8)
+
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 8, "Executive Summary", ln=True)
+    pdf.set_font("Helvetica", "", 10)
+    exec_txt = (
+        "This report summarizes DNP curriculum priority across the ten AACN 2026 "
+        "Advanced-Level Essentials domains. Priority scores are the composite "
+        "z-sum of developmental gap (NP vs RN) and Random Forest workforce "
+        "importance, rolled up from O*NET dimensions to AACN competencies and "
+        "domains via the student-developed crosswalk."
+    )
+    pdf.multi_cell(0, 5, exec_txt)
+    pdf.ln(3)
+    if not dom_df.empty:
+        top = dom_df.iloc[0]
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.multi_cell(0, 6,
+            f"Top-priority AACN Domain: {top['aacn_domain']}, {top['domain_name']}")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.multi_cell(0, 5,
+            f"Total priority burden: {top['total_priority']:.2f} across "
+            f"{top['n_competencies']} competencies. Top driver: {top['top_competency']}.")
+        pdf.ln(3)
+    if cohort_n is not None:
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.multi_cell(0, 4,
+            f"Simulated cohort size for context charts: N = {cohort_n} students.")
+
+    # --- Top 12 Competencies table --------------------------------
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 8, "Top 12 AACN Competencies by Priority", ln=True)
+    pdf.ln(2)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(27, 42, 74)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(16, 6, "ID", border=1, fill=True, align="C")
+    pdf.cell(112, 6, "Competency", border=1, fill=True, align="L")
+    pdf.cell(22, 6, "Domain", border=1, fill=True, align="C")
+    pdf.cell(22, 6, "Priority", border=1, fill=True, align="C")
+    pdf.cell(18, 6, "Dims", border=1, fill=True, align="C", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Helvetica", "", 9)
+    for _, row in comp_df.head(12).iterrows():
+        pdf.cell(16, 5, str(row['comp_id']), border=1)
+        name = row['competency'][:68] + "..." if len(row['competency']) > 68 else row['competency']
+        pdf.cell(112, 5, name, border=1)
+        pdf.cell(22, 5, str(row['aacn_domain']), border=1, align="C")
+        pdf.cell(22, 5, f"{row['mean_priority']:.2f}", border=1, align="C")
+        pdf.cell(18, 5, str(row['n_linked_dims']), border=1, align="C", ln=True)
+
+    # --- All 10 AACN Domains table --------------------------------
+    pdf.ln(6)
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 8, "All 10 AACN Domains by Priority Burden", ln=True)
+    pdf.ln(2)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(27, 42, 74)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(14, 6, "#", border=1, fill=True, align="C")
+    pdf.cell(72, 6, "Domain Name", border=1, fill=True)
+    pdf.cell(18, 6, "Comps", border=1, fill=True, align="C")
+    pdf.cell(24, 6, "Mean Prio", border=1, fill=True, align="C")
+    pdf.cell(24, 6, "Total Prio", border=1, fill=True, align="C")
+    pdf.cell(38, 6, "Top Competency", border=1, fill=True, ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Helvetica", "", 9)
+    for _, row in dom_df.iterrows():
+        pdf.cell(14, 5, str(row['aacn_domain']), border=1, align="C")
+        pdf.cell(72, 5, str(row['domain_name'])[:50], border=1)
+        pdf.cell(18, 5, str(row['n_competencies']), border=1, align="C")
+        pdf.cell(24, 5, f"{row['mean_priority']:.2f}", border=1, align="C")
+        pdf.cell(24, 5, f"{row['total_priority']:.2f}", border=1, align="C")
+        pdf.cell(38, 5, str(row['top_competency'])[:22], border=1, ln=True)
+
+    # --- Recommended Faculty Actions by Domain --------------------
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 8, "Recommended Faculty Actions by AACN Domain", ln=True)
+    pdf.set_font("Helvetica", "I", 9)
+    pdf.multi_cell(0, 4,
+        "Concrete curriculum-committee actions tied to each AACN domain. "
+        "Grouped by action type. Designed as input for CCNE program evaluation cycles.")
+    pdf.ln(3)
+
+    for dom_id in sorted(actions_map.keys(), key=int):
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.set_fill_color(230, 235, 240)
+        pdf.cell(0, 6, f"Domain {dom_id}, {domain_names.get(dom_id, 'Domain ' + dom_id)}",
+                 ln=True, fill=True)
+        pdf.ln(1)
+        for category, items in actions_map[dom_id].items():
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(0, 5, category, ln=True)
+            pdf.set_font("Helvetica", "", 9)
+            for it in items:
+                pdf.multi_cell(0, 4, f"- {it}")
+            pdf.ln(0.5)
+        pdf.ln(2)
+
+    # --- Full 45-Competency Priority Appendix ---------------------
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 8, "Appendix, All 45 AACN Competencies by Priority", ln=True)
+    pdf.ln(2)
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_fill_color(27, 42, 74)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(14, 5, "ID", border=1, fill=True, align="C")
+    pdf.cell(106, 5, "Competency", border=1, fill=True)
+    pdf.cell(18, 5, "Domain", border=1, fill=True, align="C")
+    pdf.cell(22, 5, "Mean Prio", border=1, fill=True, align="C")
+    pdf.cell(22, 5, "Max Prio", border=1, fill=True, align="C", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Helvetica", "", 8)
+    for _, row in comp_df.iterrows():
+        pdf.cell(14, 4.5, str(row['comp_id']), border=1)
+        nm = row['competency'][:65] + "..." if len(row['competency']) > 65 else row['competency']
+        pdf.cell(106, 4.5, nm, border=1)
+        pdf.cell(18, 4.5, str(row['aacn_domain']), border=1, align="C")
+        pdf.cell(22, 4.5, f"{row['mean_priority']:.2f}", border=1, align="C")
+        pdf.cell(22, 4.5, f"{row['max_priority']:.2f}", border=1, align="C", ln=True)
+
+    out = pdf.output(dest='S')
+    if isinstance(out, str):
+        return out.encode('latin-1')
+    return bytes(out)
+
+
 @st.cache_data
 def _compute_priority_table(_df, _feat_imp):
     """Join NP-vs-RN dimension gaps with RF importance; rank by composite z-score."""
@@ -2352,6 +2513,73 @@ def render_priority_simulation(df, feat_imp):
             )
             st.markdown(f"#### Actions for Domain {pick_dom}, {AACN_DOMAIN_NAMES[pick_dom]}")
             _render_actions(pick_dom)
+
+            # --- Exports ---------------------------------------------
+            st.markdown("---")
+            st.markdown("### Download for the curriculum committee")
+            st.caption(
+                "CSV files open in Excel or Google Sheets. The Faculty Report PDF "
+                "combines the priority tables plus the full recommended-action list "
+                "in a shareable multi-page document."
+            )
+
+            date_tag = datetime.now().strftime("%Y%m%d")
+
+            actions_df = _build_faculty_actions_dataframe(
+                FACULTY_ACTIONS_BY_DOMAIN, AACN_DOMAIN_NAMES)
+
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown("**Tables (CSV)**")
+                st.download_button(
+                    "Top 12 AACN Competencies",
+                    data=comp_df.head(12).to_csv(index=False).encode('utf-8'),
+                    file_name=f"aacn_top12_competencies_{date_tag}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+                st.download_button(
+                    "All 10 AACN Domains (priority burden)",
+                    data=dom_df.to_csv(index=False).encode('utf-8'),
+                    file_name=f"aacn_domain_priority_{date_tag}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+                st.download_button(
+                    "Full 45-Competency Priority Table",
+                    data=comp_df.to_csv(index=False).encode('utf-8'),
+                    file_name=f"aacn_45_competencies_{date_tag}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+                st.download_button(
+                    "Recommended Faculty Actions (all 10 domains)",
+                    data=actions_df.to_csv(index=False).encode('utf-8'),
+                    file_name=f"faculty_actions_{date_tag}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
+            with col_b:
+                st.markdown("**Report (PDF)**")
+                try:
+                    pdf_bytes = _create_faculty_aacn_pdf(
+                        comp_df, dom_df,
+                        FACULTY_ACTIONS_BY_DOMAIN, AACN_DOMAIN_NAMES,
+                    )
+                    st.download_button(
+                        "Faculty Priority & Actions Report (PDF)",
+                        data=pdf_bytes,
+                        file_name=f"aacn_faculty_report_{date_tag}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True,
+                    )
+                    st.caption(
+                        "Multi-page report: executive summary, top-12 competencies, "
+                        "all 10 domains with priority burden, full recommended-action "
+                        "list per domain, and a 45-competency appendix."
+                    )
+                except Exception as e:
+                    st.error(f"Could not generate faculty PDF: {e}")
 
     # 1. Gap Priority Matrix
     elif section == "Gap Priority Matrix":
