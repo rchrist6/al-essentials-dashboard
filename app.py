@@ -88,6 +88,147 @@ AACN_DOMAIN_NAMES = {
     "10": "Personal, Professional Development and Leadership",
 }
 
+
+# Faculty-facing curriculum recommendations per AACN domain.
+# Each recommendation is grouped by the type of program action a DNP
+# curriculum committee would take. Designed for CCNE-aligned program
+# improvement cycles. Language is actionable (verb-first) and specific.
+FACULTY_ACTIONS_BY_DOMAIN = {
+    "1": {  # Knowledge for Nursing Practice
+        "Curriculum review": [
+            "Audit NUR didactic content for nursing science, pathophysiology, and pharmacology currency against the 2026 AACN sub-competencies",
+            "Map every NUR course objective to a specific Domain 1 sub-competency and document the crosswalk",
+        ],
+        "Faculty development": [
+            "Schedule a faculty journal club on theory-application frameworks (e.g., Benner, Dreyfus, Mishel)",
+            "Invite subject-matter experts (biology, pharmacology) for in-program guest lectures",
+        ],
+        "Assessment": [
+            "Require a theory-to-practice concept paper in a core DNP course",
+            "Add a standardized case-analysis OSCE station that targets Domain 1 reasoning",
+        ],
+    },
+    "2": {  # Person-Centered Care
+        "Curriculum review": [
+            "Expand simulation catalog with standardized-patient encounters for assessment, diagnosis, and treatment planning",
+            "Review care coordination content for currency with 2026 sub-competencies on social awareness and adaptability",
+        ],
+        "Faculty development": [
+            "Host a workshop on motivational interviewing and shared decision-making for DNP faculty",
+            "Train clinical preceptors on person-centered documentation standards",
+        ],
+        "Clinical partnerships": [
+            "Review clinical-placement agreements to confirm exposure to diverse patient populations",
+            "Pilot a longitudinal patient-panel assignment where students follow the same patients across semesters",
+        ],
+    },
+    "3": {  # Population Health
+        "Curriculum review": [
+            "Update epidemiology and SDOH-screening content with current CDC/Healthy People datasets",
+            "Revise policies content to emphasize access to healthcare resources (2026 framing)",
+        ],
+        "Community partnerships": [
+            "Formalize practicum MOUs with the county/state health department",
+            "Add a community-needs-assessment capstone option",
+        ],
+        "Assessment": [
+            "Require a population-health project with a measurable outcome tied to a specific population",
+            "Add a policy-analysis rubric aligned with Domain 3.4b and 3.5i",
+        ],
+    },
+    "4": {  # Scholarship for Nursing Practice
+        "Curriculum review": [
+            "Strengthen systematic-review methodology across the research-methods sequence",
+            "Embed JHNEBP or similar evidence-appraisal tool in every DNP scholarly-project course",
+        ],
+        "Assessment": [
+            "Require a manuscript-quality dissemination product (poster, brief, or paper) at project completion",
+            "Add a peer-review simulation using anonymized prior DNP projects",
+        ],
+        "Partnerships": [
+            "Establish a writing-center or journal-mentor partnership for manuscript submissions",
+        ],
+    },
+    "5": {  # Quality and Safety
+        "Curriculum review": [
+            "Integrate IHI Open School quality and safety modules into NUR690/702 (or equivalent)",
+            "Add a required root-cause-analysis exercise using a de-identified institutional case",
+        ],
+        "Clinical partnerships": [
+            "Partner with a hospital quality department for a patient-safety practicum rotation",
+            "Align DNP capstones with organizational QI priorities to create real-world projects",
+        ],
+        "Assessment": [
+            "Add quality-metric dashboard-development as a competency-assessed deliverable",
+        ],
+    },
+    "6": {  # Interprofessional Partnerships
+        "Curriculum review": [
+            "Establish a shared IPE course with the School of Pharmacy and Physical Therapy programs",
+            "Review team-communication content (TeamSTEPPS, SBAR) for currency",
+        ],
+        "Simulation": [
+            "Add team-based care simulations with students from at least two other health-professions programs",
+            "Run interprofessional rounds in the simulation center monthly",
+        ],
+        "Assessment": [
+            "Require a collaborative-practice agreement or team-based project deliverable",
+        ],
+    },
+    "7": {  # Systems-Based Practice
+        "Curriculum review": [
+            "Add health-economics and care-finance content to the systems course",
+            "Integrate Design-for-Operations and systems-thinking exercises into the capstone sequence",
+        ],
+        "Clinical partnerships": [
+            "Partner with a health-system operations or strategy office for a systems-level practicum",
+            "Bring in a CFO or COO guest lecturer each term",
+        ],
+        "Assessment": [
+            "Require a systems-level policy or process-improvement proposal with a cost-impact analysis",
+        ],
+    },
+    "8": {  # Informatics and Healthcare Technologies
+        "Curriculum review": [
+            "Update the informatics course to include current EHR optimization, AI-assisted documentation, and telehealth content",
+            "Add a data-analytics sequence using de-identified clinical datasets",
+        ],
+        "Resources": [
+            "Provide a Tableau or Power BI license for every DNP student",
+            "Maintain a sandbox EHR environment for in-program training",
+        ],
+        "Assessment": [
+            "Require an informatics-focused QI or analytics project as a rubric-graded deliverable",
+        ],
+    },
+    "9": {  # Professionalism
+        "Curriculum review": [
+            "Review professional identity formation content against the 2026 framing (access, connection, engagement)",
+            "Update regulatory and ethics content with the current ANA Code and state BON rules",
+        ],
+        "Portfolio and assessment": [
+            "Require a reflective professional portfolio with artifacts tied to each Domain 9 sub-competency",
+            "Use a longitudinal ePortfolio assessed at NUR702 midpoint and NUR703 final",
+        ],
+        "Faculty development": [
+            "Host a faculty workshop on recognizing and counteracting bias in advising and evaluation",
+        ],
+    },
+    "10": {  # Personal, Professional Development and Leadership
+        "Curriculum review": [
+            "Add a leadership-capacity assessment (e.g., MLQ, StrengthsFinder) with a development plan assignment",
+            "Embed resilience and self-care content across the DNP core",
+        ],
+        "Mentorship": [
+            "Pair every DNP student with an alumni or practice mentor for at least one academic year",
+            "Create a peer-mentorship program between cohorts",
+        ],
+        "Assessment": [
+            "Require a strategic-planning project framed around the student's intended post-graduation role",
+        ],
+    },
+}
+
 DREYFUS_SCALE = {
     1: "Novice",
     2: "Advanced Beginner",
@@ -2167,6 +2308,50 @@ def render_priority_simulation(df, feat_imp):
                 disp_all['Max Priority'] = disp_all['Max Priority'].round(3)
                 st.dataframe(disp_all.reset_index(drop=True),
                                use_container_width=True, hide_index=True)
+
+            # --- Recommended Faculty Actions ------------------------------
+            st.markdown("---")
+            st.markdown("### Recommended Faculty Actions by AACN Domain")
+            st.caption(
+                "Concrete curriculum-committee actions tied to each AACN domain, "
+                "grouped by type. Use these as input for your next CCNE program "
+                "evaluation cycle. The top-priority domain is pre-selected."
+            )
+
+            top_dom = dom_df.iloc[0]
+            top_dom_id = top_dom['aacn_domain']
+            # Call out the top-priority recommendations first
+            st.success(
+                f"**Highest-priority AACN domain to act on: Domain {top_dom_id}, "
+                f"{top_dom['domain_name']}** "
+                f"(total priority {top_dom['total_priority']:.2f} across "
+                f"{top_dom['n_competencies']} competencies). Top driver competency: "
+                f"{top_dom['top_competency']}."
+            )
+
+            def _render_actions(domain_id):
+                actions = FACULTY_ACTIONS_BY_DOMAIN.get(domain_id, {})
+                if not actions:
+                    st.info(f"No curated faculty actions on file for Domain {domain_id}.")
+                    return
+                for category, items in actions.items():
+                    st.markdown(f"**{category}**")
+                    for it in items:
+                        st.markdown(f"- {it}")
+                    st.markdown("")
+
+            st.markdown(f"#### Actions for Domain {top_dom_id}, {top_dom['domain_name']}")
+            _render_actions(top_dom_id)
+
+            st.markdown("---")
+            pick_dom = st.selectbox(
+                "Explore actions for any AACN domain",
+                sorted(FACULTY_ACTIONS_BY_DOMAIN.keys(), key=int),
+                format_func=lambda d: f"Domain {d}, {AACN_DOMAIN_NAMES[d]}",
+                index=0,
+            )
+            st.markdown(f"#### Actions for Domain {pick_dom}, {AACN_DOMAIN_NAMES[pick_dom]}")
+            _render_actions(pick_dom)
 
     # 1. Gap Priority Matrix
     elif section == "Gap Priority Matrix":
