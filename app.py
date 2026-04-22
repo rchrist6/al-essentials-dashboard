@@ -1616,6 +1616,217 @@ def _simulate_aacn_cohort(_df, _crosswalk, n_students=50, seed=42):
     return cohort, rn_aacn, np_aacn
 
 
+_ONET_DOMAIN_TO_KEY = {
+    'Knowledge': 'knowledge', 'Skills': 'skills', 'Abilities': 'abilities',
+    'Work Activities': 'work_activities', 'Work Styles': 'work_styles',
+    'Work Context': 'work_context',
+}
+
+
+@st.cache_data
+def _build_onet_to_aacn_map(_crosswalk):
+    """Reverse crosswalk lookup: (onet_domain_key, dim_name) -> list of AACN competency IDs."""
+    from collections import defaultdict
+    m = defaultdict(list)
+    for comp_id, entry in _crosswalk.items():
+        od = entry.get('onet_dimensions', {}) or {}
+        for onet_dom_cap, dims in od.items():
+            key_dom = _ONET_DOMAIN_TO_KEY.get(onet_dom_cap, onet_dom_cap.lower().replace(' ', '_'))
+            for dim in (dims or []):
+                m[(key_dom, dim)].append(comp_id)
+    return dict(m)
+
+
+@st.cache_data
+def _compute_aacn_priority(_pos, _crosswalk):
+    """Aggregate O*NET-dimension priority scores up to AACN competency and domain levels.
+
+    Returns:
+      comp_df: DataFrame one row per AACN competency that has any linked O*NET
+               dimension in the priority table. Columns:
+                 comp_id (e.g. '1.2'), competency (str), aacn_domain (str '1'-'10'),
+                 mean_priority, max_priority, n_linked_dims, top_onet_dim.
+      dom_df:  DataFrame one row per AACN domain (1-10). Columns:
+                 aacn_domain, domain_name, total_priority, mean_priority,
+                 n_competencies, top_competency, top_priority.
+    """
+    rows = []
+    for comp_id, entry in _crosswalk.items():
+        od = entry.get('onet_dimensions', {}) or {}
+        aacn_dom = comp_id.split('.')[0]
+        comp_name = entry.get('competency', '')
+        priorities = []
+        top_dim, top_prio = None, -1e9
+        for onet_dom_cap, dims in od.items():
+            key_dom = _ONET_DOMAIN_TO_KEY.get(onet_dom_cap, onet_dom_cap.lower().replace(' ', '_'))
+            for dim in (dims or []):
+                match = _pos[(_pos['domain'] == key_dom) & (_pos['dimension'] == dim)]
+                if not match.empty:
+                    p = float(match['priority'].iloc[0])
+                    priorities.append(p)
+                    if p > top_prio:
+                        top_prio = p
+                        top_dim = dim
+        if priorities:
+            rows.append({
+                'comp_id': comp_id,
+                'competency': comp_name,
+                'aacn_domain': aacn_dom,
+                'mean_priority': float(np.mean(priorities)),
+                'max_priority': float(max(priorities)),
+                'n_linked_dims': len(priorities),
+                'top_onet_dim': top_dim,
+            })
+    comp_df = pd.DataFrame(rows).sort_values('mean_priority', ascending=False).reset_index(drop=True)
+
+    # Domain-level rollup
+    dom_rows = []
+    for dom in sorted({r['aacn_domain'] for r in rows}, key=int):
+        sub = comp_df[comp_df.aacn_domain == dom]
+        if sub.empty:
+            continue
+        top = sub.iloc[0]
+        dom_rows.append({
+            'aacn_domain': dom,
+            'domain_name': AACN_DOMAIN_NAMES.get(dom, f'Domain {dom}'),
+            'total_priority': float(sub['mean_priority'].sum()),
+            'mean_priority': float(sub['mean_priority'].mean()),
+            'n_competencies': int(len(sub)),
+            'top_competency': f"{top['comp_id']}, {top['competency'][:50]}",
+            'top_priority': float(top['mean_priority']),
+        })
+    dom_df = pd.DataFrame(dom_rows).sort_values('total_priority', ascending=False).reset_index(drop=True)
+    return comp_df, dom_df
+
+
+@st.cache_data
+def _compute_aacn_bootstrap_gaps(_df, _crosswalk, n_boot=3000, seed=42):
+    """Compute NP-vs-RN bootstrap gaps aggregated to the 10 AACN domains.
+
+    For each AACN domain, pool all O*NET dimensions mapped through the crosswalk
+    and resample (np.random.choice) from RN and NP score vectors to build 95% CIs
+    on the AACN-domain mean gap.
+    """
+    # Build AACN domain -> list of (onet_domain_key, dim_name) mappings
+    from collections import defaultdict
+    dom_dims = defaultdict(set)
+    for comp_id, entry in _crosswalk.items():
+        aacn_dom = comp_id.split('.')[0]
+        od = entry.get('onet_dimensions', {}) or {}
+        for onet_dom_cap, dims in od.items():
+            key_dom = _ONET_DOMAIN_TO_KEY.get(onet_dom_cap, onet_dom_cap.lower().replace(' ', '_'))
+            for dim in (dims or []):
+                dom_dims[aacn_dom].add((key_dom, dim))
+
+    rn_all = _df[_df.soc_code == '29-1141.00']
+    np_all = _df[_df.soc_code == '29-1171.00']
+
+    # Build a lookup: (onet_key, dim) -> single normalized score for each role
+    rn_lookup = {(r['domain'], r['element_name']): r['normalized_value']
+                 for _, r in rn_all.iterrows()}
+    np_lookup = {(r['domain'], r['element_name']): r['normalized_value']
+                 for _, r in np_all.iterrows()}
+
+    np.random.seed(seed)
+    out = {}
+    for dom, keys in dom_dims.items():
+        rn_vals = np.array([rn_lookup[k] for k in keys if k in rn_lookup])
+        np_vals = np.array([np_lookup[k] for k in keys if k in np_lookup])
+        if len(rn_vals) < 2 or len(np_vals) < 2:
+            continue
+        obs = float(np_vals.mean() - rn_vals.mean())
+        boot = np.empty(n_boot)
+        for i in range(n_boot):
+            r = np.random.choice(rn_vals, len(rn_vals), True)
+            n = np.random.choice(np_vals, len(np_vals), True)
+            boot[i] = n.mean() - r.mean()
+        ci_lo, ci_hi = float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))
+        out[dom] = {
+            'obs': obs, 'boot': boot.tolist(),
+            'ci_lo': ci_lo, 'ci_hi': ci_hi,
+            'sig': not (ci_lo <= 0 <= ci_hi),
+            'n_dims': len(rn_vals),
+        }
+    return out
+
+
+@st.cache_data
+def _compute_aacn_pathway_probs(_df, _crosswalk, scenario_name, seed=42, n_sim=3000):
+    """For a chosen pathway scenario, compute achievement probability per AACN domain.
+
+    Uses the same Monte Carlo approach as the O*NET-domain simulation but pools
+    students' ratings by AACN domain through the crosswalk.
+    """
+    from collections import defaultdict
+    dom_dims = defaultdict(set)
+    for comp_id, entry in _crosswalk.items():
+        aacn_dom = comp_id.split('.')[0]
+        od = entry.get('onet_dimensions', {}) or {}
+        for onet_dom_cap, dims in od.items():
+            key_dom = _ONET_DOMAIN_TO_KEY.get(onet_dom_cap, onet_dom_cap.lower().replace(' ', '_'))
+            for dim in (dims or []):
+                dom_dims[aacn_dom].add((key_dom, dim))
+
+    scenario_weights = {
+        'Balanced': {d: 1.0 for d in DOMAIN_ORDER},
+        'Knowledge-Heavy': {'knowledge': 2.5, 'skills': 1.0, 'abilities': 0.8,
+                            'work_activities': 0.8, 'work_styles': 0.5, 'work_context': 0.4},
+        'Clinical-Focus': {'knowledge': 1.5, 'skills': 2.0, 'abilities': 1.5,
+                           'work_activities': 2.0, 'work_styles': 0.5, 'work_context': 0.5},
+        'Leadership-Focus': {'knowledge': 1.0, 'skills': 1.5, 'abilities': 0.8,
+                             'work_activities': 1.5, 'work_styles': 1.5, 'work_context': 1.2},
+    }
+    w = scenario_weights[scenario_name]
+    tot = sum(w.values())
+    nw = {d: v / tot for d, v in w.items()}
+
+    rn_all = _df[_df.soc_code == '29-1141.00']
+    np_all = _df[_df.soc_code == '29-1171.00']
+    rn_lookup = {(r['domain'], r['element_name']): r['normalized_value']
+                 for _, r in rn_all.iterrows()}
+    np_lookup = {(r['domain'], r['element_name']): r['normalized_value']
+                 for _, r in np_all.iterrows()}
+
+    np.random.seed(seed)
+    probs = {}
+    for dom, keys in dom_dims.items():
+        # Split keys by O*NET domain to apply scenario weights
+        rn_vals_by_onet = defaultdict(list)
+        np_vals_by_onet = defaultdict(list)
+        for (okey, dim) in keys:
+            if (okey, dim) in rn_lookup:
+                rn_vals_by_onet[okey].append(rn_lookup[(okey, dim)])
+            if (okey, dim) in np_lookup:
+                np_vals_by_onet[okey].append(np_lookup[(okey, dim)])
+        if not rn_vals_by_onet or not np_vals_by_onet:
+            continue
+        np_target_mean = np.mean(
+            [v for lst in np_vals_by_onet.values() for v in lst]
+        )
+        threshold = 0.9 * np_target_mean
+
+        sims = np.empty(n_sim)
+        for s in range(n_sim):
+            # Weighted mix across O*NET domains that populate this AACN domain
+            weighted_mean = 0.0
+            total_w = 0.0
+            for okey, rn_vals in rn_vals_by_onet.items():
+                if okey not in np_vals_by_onet:
+                    continue
+                np_vals = np_vals_by_onet[okey]
+                rb = np.random.choice(rn_vals, size=len(rn_vals), replace=True).mean()
+                nb = np.random.choice(np_vals, size=len(np_vals), replace=True).mean()
+                closure = nw.get(okey, 1.0 / len(nw)) * np.random.beta(3, 2)
+                achieved = rb + (nb - rb) * closure
+                weighted_mean += achieved * nw.get(okey, 1.0 / len(nw))
+                total_w += nw.get(okey, 1.0 / len(nw))
+            if total_w > 0:
+                weighted_mean /= total_w
+            sims[s] = weighted_mean
+        probs[dom] = float((sims >= threshold).mean())
+    return probs
+
+
 @st.cache_data
 def _compute_priority_table(_df, _feat_imp):
     """Join NP-vs-RN dimension gaps with RF importance; rank by composite z-score."""
@@ -1742,6 +1953,7 @@ def render_priority_simulation(df, feat_imp):
     section = st.radio(
         "Section",
         ["Cohort Overview (AACN)",
+         "AACN Priority Summary",
          "Gap Priority Matrix",
          "Personalized Learning Roadmap",
          "Priority 3D Space",
@@ -1859,8 +2071,105 @@ def render_priority_simulation(df, feat_imp):
             "would have the highest return on cohort preparation."
         )
 
+    # 0b. AACN Priority Summary (NEW faculty-first AACN-framed view) ─
+    if section == "AACN Priority Summary":
+        st.subheader("AACN Priority Summary, Where Curriculum Investment Pays Off")
+        st.caption(
+            "Each of the 45 AACN Advanced-Level competencies is scored by rolling up the "
+            "priority scores of its crosswalk-mapped O*NET dimensions. Faculty read this "
+            "as: which AACN competencies and domains have the highest composite need "
+            "(developmental gap plus workforce signal)."
+        )
+        crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+        comp_df, dom_df = _compute_aacn_priority(pos, crosswalk)
+
+        if comp_df.empty:
+            st.warning("No AACN competencies have priority-ranked O*NET mappings yet.")
+        else:
+            # Top-priority callout
+            top = comp_df.iloc[0]
+            st.success(
+                f"**Highest-priority AACN competency:** **{top['comp_id']}, {top['competency']}** "
+                f"(Domain {top['aacn_domain']}, {AACN_DOMAIN_NAMES[top['aacn_domain']]}). "
+                f"Mean priority {top['mean_priority']:.2f} across {top['n_linked_dims']} "
+                f"linked O*NET dimensions; top-driver dimension: {top['top_onet_dim']}."
+            )
+
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                st.markdown("#### Top 12 AACN Competencies by Priority")
+                top12_c = comp_df.head(12).copy()
+                top12_c['label'] = [
+                    f"{row['comp_id']}  {row['competency'][:50]}"
+                    for _, row in top12_c.iterrows()
+                ]
+                # Sort ascending for horizontal bar (largest at top visually)
+                disp_c = top12_c.iloc[::-1].reset_index(drop=True)
+                fig_c = go.Figure(go.Bar(
+                    x=disp_c['mean_priority'], y=disp_c['label'],
+                    orientation='h',
+                    marker_color=[aacn_palette[int(d) - 1] for d in disp_c['aacn_domain']],
+                    text=[f"Domain {d}" for d in disp_c['aacn_domain']],
+                    textposition='outside',
+                    hovertemplate=("<b>%{y}</b><br>"
+                                   "Mean priority: %{x:.2f}<extra></extra>"),
+                ))
+                fig_c.update_layout(height=520, template='plotly_white',
+                                      xaxis_title='Mean Priority Score',
+                                      yaxis=dict(tickfont=dict(size=10)))
+                st.plotly_chart(fig_c, use_container_width=True)
+
+            with c2:
+                st.markdown("#### All 10 AACN Domains by Total Priority Burden")
+                # Plot all 10 AACN domains ordered by total priority
+                fig_d = go.Figure(go.Bar(
+                    x=dom_df['total_priority'],
+                    y=[f"{r['aacn_domain']}, {r['domain_name']}"
+                       for _, r in dom_df.iterrows()],
+                    orientation='h',
+                    marker_color=[aacn_palette[int(d) - 1] for d in dom_df['aacn_domain']],
+                    text=[f"{n} competencies  |  mean {m:.2f}"
+                          for n, m in zip(dom_df['n_competencies'], dom_df['mean_priority'])],
+                    textposition='outside',
+                ))
+                fig_d.update_layout(height=520, template='plotly_white',
+                                      xaxis_title='Total Priority (sum of competency means)',
+                                      yaxis=dict(autorange='reversed',
+                                                 tickfont=dict(size=11)))
+                st.plotly_chart(fig_d, use_container_width=True)
+
+            st.markdown("---")
+            st.markdown("#### Faculty Action Table, AACN Curriculum Priorities")
+            st.caption("Sorted by total priority burden across the competencies in each domain. "
+                       "Higher = stronger case for curriculum reinforcement in that domain.")
+            disp_dom = dom_df.copy()
+            disp_dom = disp_dom[['aacn_domain', 'domain_name', 'n_competencies',
+                                    'mean_priority', 'total_priority',
+                                    'top_competency', 'top_priority']]
+            disp_dom.columns = ['AACN Domain', 'Domain Name', 'Competencies Scored',
+                                 'Mean Priority', 'Total Priority',
+                                 'Top Competency', 'Top Competency Priority']
+            # Format numeric columns
+            disp_dom['Mean Priority'] = disp_dom['Mean Priority'].round(3)
+            disp_dom['Total Priority'] = disp_dom['Total Priority'].round(3)
+            disp_dom['Top Competency Priority'] = disp_dom['Top Competency Priority'].round(3)
+            st.dataframe(disp_dom.reset_index(drop=True),
+                           use_container_width=True, hide_index=True)
+
+            with st.expander("See the full 45-competency priority table"):
+                disp_all = comp_df[['comp_id', 'competency', 'aacn_domain',
+                                      'mean_priority', 'max_priority',
+                                      'n_linked_dims', 'top_onet_dim']].copy()
+                disp_all.columns = ['Comp ID', 'Competency', 'AACN Domain',
+                                      'Mean Priority', 'Max Priority',
+                                      'Linked O*NET Dims', 'Top O*NET Dim']
+                disp_all['Mean Priority'] = disp_all['Mean Priority'].round(3)
+                disp_all['Max Priority'] = disp_all['Max Priority'].round(3)
+                st.dataframe(disp_all.reset_index(drop=True),
+                               use_container_width=True, hide_index=True)
+
     # 1. Gap Priority Matrix
-    if section == "Gap Priority Matrix":
+    elif section == "Gap Priority Matrix":
         st.subheader("Gap Priority Matrix")
         st.caption(
             f"All {len(pos)} positive-gap dimensions, colored by O*NET domain. "
@@ -1886,36 +2195,84 @@ def render_priority_simulation(df, feat_imp):
             yaxis_title='NP - RN Gap')
         st.plotly_chart(fig, use_container_width=True)
 
-    # 2. Personalized Learning Roadmap
+    # 2. Personalized Learning Roadmap (dual O*NET + AACN views)
     elif section == "Personalized Learning Roadmap":
-        st.subheader("Personalized Learning Roadmap, Top 12")
-        top12 = pos.nlargest(12, 'priority').reset_index(drop=True)
-        top12['rank'] = top12.index + 1
-        disp = top12.iloc[::-1].reset_index(drop=True)
-        fig = go.Figure(go.Bar(
-            x=disp['priority'], y=disp['dimension'],
-            orientation='h',
-            marker_color=[domain_colors[d] for d in disp['domain']],
-            text=[f"gap {g:+.3f}  |  RF {imp:.4f}"
-                  for g, imp in zip(disp['gap'], disp['rf_importance'])],
-            textposition='outside',
-        ))
-        fig.update_layout(
-            height=600, template='plotly_white',
-            xaxis_title='Composite Priority (z-gap + z-importance)',
-            yaxis=dict(tickfont=dict(size=11)))
-        st.plotly_chart(fig, use_container_width=True)
-        st.info(
-            f"**Top priority dimension:** {top12.iloc[0]['dimension']} "
-            f"({DOMAIN_LABELS[top12.iloc[0]['domain']]}). "
-            "Higher bars = larger development impact from focused effort."
-        )
+        st.subheader("Personalized Learning Roadmap")
+        view = st.radio("Roadmap grain",
+                         ["AACN competency (faculty / CCNE framing)",
+                          "O*NET dimension (workforce framing)"],
+                         horizontal=True, index=0)
 
-    # 3. Priority 3D Space
+        if view.startswith("AACN"):
+            st.caption(
+                "Top 12 AACN Advanced-Level competencies ranked by mean priority "
+                "across their crosswalk-mapped O*NET dimensions. Color = AACN domain. "
+                "Faculty read this as: which of the 45 competencies deserve the most "
+                "DNP curriculum investment."
+            )
+            crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+            comp_df, _ = _compute_aacn_priority(pos, crosswalk)
+            if comp_df.empty:
+                st.warning("Could not compute AACN-level priorities; check crosswalk data.")
+            else:
+                top12_c = comp_df.head(12).copy()
+                disp = top12_c.iloc[::-1].reset_index(drop=True)
+                fig = go.Figure(go.Bar(
+                    x=disp['mean_priority'],
+                    y=[f"{row['comp_id']}  {row['competency'][:55]}"
+                       for _, row in disp.iterrows()],
+                    orientation='h',
+                    marker_color=[aacn_palette[int(d) - 1] for d in disp['aacn_domain']],
+                    text=[f"Domain {d}, {disp.iloc[i]['n_linked_dims']} linked dims"
+                          for i, d in enumerate(disp['aacn_domain'])],
+                    textposition='outside',
+                ))
+                fig.update_layout(
+                    height=620, template='plotly_white',
+                    xaxis_title='Mean Priority (averaged across linked O*NET dimensions)',
+                    yaxis=dict(tickfont=dict(size=10)),
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                top = top12_c.iloc[0]
+                st.success(
+                    f"**Top priority AACN competency:** {top['comp_id']}, "
+                    f"{top['competency']} (Domain {top['aacn_domain']}, "
+                    f"{AACN_DOMAIN_NAMES[top['aacn_domain']]}). "
+                    f"Driven primarily by the O*NET dimension '{top['top_onet_dim']}'. "
+                    "This is the single highest-return AACN competency for DNP curriculum reinforcement."
+                )
+        else:
+            st.caption(
+                "Top 12 O*NET dimensions by composite priority (z-gap + z-importance). "
+                "Color = O*NET domain. This is the workforce-data view."
+            )
+            top12 = pos.nlargest(12, 'priority').reset_index(drop=True)
+            top12['rank'] = top12.index + 1
+            disp = top12.iloc[::-1].reset_index(drop=True)
+            fig = go.Figure(go.Bar(
+                x=disp['priority'], y=disp['dimension'],
+                orientation='h',
+                marker_color=[domain_colors[d] for d in disp['domain']],
+                text=[f"gap {g:+.3f}  |  RF {imp:.4f}"
+                      for g, imp in zip(disp['gap'], disp['rf_importance'])],
+                textposition='outside',
+            ))
+            fig.update_layout(
+                height=600, template='plotly_white',
+                xaxis_title='Composite Priority (z-gap + z-importance)',
+                yaxis=dict(tickfont=dict(size=11)))
+            st.plotly_chart(fig, use_container_width=True)
+            st.info(
+                f"**Top priority dimension:** {top12.iloc[0]['dimension']} "
+                f"({DOMAIN_LABELS[top12.iloc[0]['domain']]}). "
+                "Higher bars = larger development impact from focused effort."
+            )
+
+    # 3. Priority 3D Space (with faculty interpretation)
     elif section == "Priority 3D Space":
         st.subheader("Priority 3D Space")
         st.caption(
-            f"{len(pos)} positive-gap dimensions plotted in 3D. "
+            f"{len(pos)} positive-gap O*NET dimensions plotted in 3D. "
             "Rotate with the mouse. Hover for dimension name."
         )
         fig = go.Figure()
@@ -1931,11 +2288,48 @@ def render_priority_simulation(df, feat_imp):
                               "RF: %{y:.4f}<br>Priority: %{z:.3f}<extra></extra>",
             ))
         fig.update_layout(
-            height=660,
+            height=620,
             scene=dict(xaxis_title='NP - RN Gap',
                        yaxis_title='RF Importance',
                        zaxis_title='Composite Priority'))
         st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("### How to read this for DNP curriculum decisions")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(
+                "- **X axis, NP minus RN gap**, how much a Nurse Practitioner exceeds "
+                "an RN on that dimension in the O*NET workforce data. Larger X = bigger "
+                "developmental need during the DNP program.\n"
+                "- **Y axis, Random Forest importance**, how strongly that dimension "
+                "predicts AL role classification. Larger Y = stronger workforce signal.\n"
+                "- **Z axis, composite priority**, the z-score sum of the two axes. "
+                "Higher Z = stronger combined case for curriculum emphasis.\n"
+                "- **Upper-front-right corner** of the cube is the DNP curriculum "
+                "priority zone."
+            )
+        with c2:
+            # Summarize which AACN domains dominate the upper quadrant
+            crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+            comp_df, dom_df = _compute_aacn_priority(pos, crosswalk)
+            if not dom_df.empty:
+                top3 = dom_df.head(3)
+                bullets = []
+                for _, row in top3.iterrows():
+                    bullets.append(
+                        f"- **Domain {row['aacn_domain']}, {row['domain_name']}** "
+                        f"absorbs {row['n_competencies']} priority-linked competencies "
+                        f"(total priority {row['total_priority']:.2f})."
+                    )
+                st.markdown(
+                    "**Translated into AACN domain terms**, the three AACN domains "
+                    "with the heaviest priority burden in this 3D space are:\n\n"
+                    + "\n".join(bullets)
+                    + "\n\nThis tells faculty which AACN domains are carrying the "
+                    "largest share of curriculum-priority work and therefore deserve "
+                    "the closest review in the next program evaluation cycle."
+                )
 
     # 4. Priority Flow (horizontal grouped bar, domain-annotated) ─
     elif section == "Top 12 Priority Flow":
@@ -1995,6 +2389,40 @@ def render_priority_simulation(df, feat_imp):
             disp = disp.sort_values('Priority', ascending=False).reset_index(drop=True)
             st.dataframe(disp, use_container_width=True, hide_index=True)
 
+        st.markdown("---")
+        st.markdown("### Same priority weight, rolled up to AACN domains")
+        st.caption(
+            "Each O*NET dimension is mapped through the student-developed crosswalk "
+            "to one or more AACN competencies. This chart shows the total priority "
+            "weight absorbed by each AACN domain."
+        )
+        crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+        _, dom_df = _compute_aacn_priority(pos, crosswalk)
+        if not dom_df.empty:
+            fig_aacn = go.Figure(go.Bar(
+                x=dom_df['total_priority'],
+                y=[f"{r['aacn_domain']}, {r['domain_name']}"
+                   for _, r in dom_df.iterrows()],
+                orientation='h',
+                marker_color=[aacn_palette[int(d) - 1] for d in dom_df['aacn_domain']],
+                text=[f"{r['n_competencies']} competencies  |  top: {r['top_competency'][:40]}"
+                      for _, r in dom_df.iterrows()],
+                textposition='outside',
+            ))
+            fig_aacn.update_layout(
+                height=480, template='plotly_white',
+                xaxis_title='Total Priority Burden (sum of competency mean priorities)',
+                yaxis=dict(autorange='reversed', tickfont=dict(size=11)),
+            )
+            st.plotly_chart(fig_aacn, use_container_width=True)
+            top_dom = dom_df.iloc[0]
+            st.success(
+                f"**AACN domain highest priority burden:** Domain {top_dom['aacn_domain']}, "
+                f"{top_dom['domain_name']} (total priority {top_dom['total_priority']:.2f} "
+                f"across {top_dom['n_competencies']} linked competencies). "
+                "This is the CCNE-aligned curriculum priority."
+            )
+
     # 5. Bootstrap Distributions
     elif section == "Bootstrap Distributions":
         st.subheader("Bootstrap Sampling Distributions (NP vs RN)")
@@ -2018,9 +2446,58 @@ def render_priority_simulation(df, feat_imp):
         fig.add_hline(y=0, line_dash='dot', line_color='gray')
         st.plotly_chart(fig, use_container_width=True)
         st.info(
-            "**Knowledge** is the only domain with a significant NP-vs-RN gap "
+            "**Knowledge** is the only O*NET domain with a significant NP-vs-RN gap "
             "(observed +0.113, 95% CI [+0.007, +0.220]). The other five CIs cross zero."
         )
+
+        st.markdown("---")
+        st.markdown("### AACN-domain-level bootstrap gaps (NP vs RN)")
+        st.caption(
+            "Same bootstrap method, but scores are pooled by AACN Advanced-Level domain "
+            "through the crosswalk. This is the CCNE-facing view of which of the 10 AACN "
+            "domains shows a statistically supported NP-vs-RN difference."
+        )
+        crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+        with st.spinner("Running AACN-domain-level bootstrap (3,000 resamples per domain)..."):
+            aacn_gaps = _compute_aacn_bootstrap_gaps(df, crosswalk, n_boot=3000, seed=42)
+
+        if aacn_gaps:
+            aacn_dom_order = sorted(aacn_gaps.keys(), key=int)
+            fig_a = go.Figure()
+            for i, d in enumerate(aacn_dom_order):
+                g = aacn_gaps[d]
+                fig_a.add_trace(go.Violin(
+                    y=g['boot'],
+                    name=f"{d}. {AACN_DOMAIN_NAMES[d][:25]}",
+                    box_visible=True, meanline_visible=True,
+                    fillcolor=aacn_palette[int(d) - 1], opacity=0.78,
+                    line_color='#1B2A4A',
+                    hovertemplate=(f"<b>Domain {d}, {AACN_DOMAIN_NAMES[d]}</b><br>"
+                                   f"Observed gap: {g['obs']:+.4f}<br>"
+                                   f"95% CI: [{g['ci_lo']:+.4f}, {g['ci_hi']:+.4f}]<br>"
+                                   f"N dims pooled: {g['n_dims']}<br>"
+                                   f"Significant: {'Yes' if g['sig'] else 'No'}<extra></extra>"),
+                ))
+            fig_a.update_layout(height=500, template='plotly_white',
+                                  yaxis_title='Gap (NP minus RN)', showlegend=False,
+                                  xaxis=dict(tickangle=-25, tickfont=dict(size=10)),
+                                  margin=dict(b=140))
+            fig_a.add_hline(y=0, line_dash='dot', line_color='gray')
+            st.plotly_chart(fig_a, use_container_width=True)
+
+            sig_doms = [f"Domain {d}, {AACN_DOMAIN_NAMES[d]}"
+                        for d in aacn_dom_order if aacn_gaps[d]['sig']]
+            if sig_doms:
+                st.success(
+                    "**AACN domains with significant NP-vs-RN gap (CI excludes zero):**\n\n"
+                    + "\n".join(f"- {s}" for s in sig_doms)
+                    + "\n\nThese are the AACN domains where advanced practice credentialing "
+                    "reliably shifts competency and where DNP coursework must sustain that lift."
+                )
+            else:
+                st.info("None of the 10 AACN domains shows a statistically significant "
+                         "NP-vs-RN gap at the AACN-aggregate level. Gaps exist at the "
+                         "competency level but wash out when pooled to the domain.")
 
     # 6. Learning Pathway Simulation
     elif section == "Learning Pathway Simulation":
@@ -2088,6 +2565,51 @@ def render_priority_simulation(df, feat_imp):
             "(0.9 percentage points). The meaningful differences are at the domain level, "
             "not overall. 5,000 Monte Carlo simulations per scenario, seed = 42."
         )
+
+        st.markdown("---")
+        st.markdown(f"### AACN domain achievement probability under {scenario}")
+        st.caption(
+            "Same pathway Monte Carlo, but scores pooled by AACN Advanced-Level domain "
+            "through the crosswalk. Each bar is the probability that a simulated student "
+            "reaches 90 percent of the NP benchmark for that AACN domain under the "
+            "chosen scenario weights."
+        )
+        crosswalk = st.session_state.get('crosswalk') or load_crosswalk()
+        with st.spinner("Running AACN-domain pathway simulation (3,000 sims per domain)..."):
+            aacn_probs = _compute_aacn_pathway_probs(df, crosswalk, scenario,
+                                                       seed=42, n_sim=3000)
+
+        if aacn_probs:
+            aacn_dom_order = sorted(aacn_probs.keys(), key=int)
+            fig_ap = go.Figure(go.Bar(
+                x=[f"{d}. {AACN_DOMAIN_NAMES[d][:25]}" for d in aacn_dom_order],
+                y=[aacn_probs[d] for d in aacn_dom_order],
+                marker_color=[aacn_palette[int(d) - 1] for d in aacn_dom_order],
+                text=[f"{aacn_probs[d]:.0%}" for d in aacn_dom_order],
+                textposition='outside',
+                hovertemplate=("<b>Domain %{customdata[0]}, %{customdata[1]}</b><br>"
+                               "P(reach 90% NP): %{y:.1%}<extra></extra>"),
+                customdata=[[d, AACN_DOMAIN_NAMES[d]] for d in aacn_dom_order],
+            ))
+            fig_ap.add_hline(y=0.8, line_dash='dash', line_color='#e07a5f',
+                              annotation_text="80% goal")
+            fig_ap.update_layout(
+                height=480, template='plotly_white', showlegend=False,
+                xaxis=dict(tickangle=-25, tickfont=dict(size=10)),
+                yaxis=dict(tickformat='.0%', range=[0, 1.15]),
+                margin=dict(b=140))
+            st.plotly_chart(fig_ap, use_container_width=True)
+
+            lowest = min(aacn_probs, key=aacn_probs.get)
+            highest = max(aacn_probs, key=aacn_probs.get)
+            st.info(
+                f"**Under {scenario}:** Domain {highest}, {AACN_DOMAIN_NAMES[highest]} "
+                f"reaches the 90 percent NP benchmark with the highest probability "
+                f"({aacn_probs[highest]:.1%}). "
+                f"Domain {lowest}, {AACN_DOMAIN_NAMES[lowest]} has the lowest "
+                f"({aacn_probs[lowest]:.1%}) under this scenario and needs the most "
+                "curriculum support to close that gap."
+            )
 
 
 if __name__ == "__main__":
